@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>委託資料製作工具</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--accent:#C084B0;--accent2:#8B5CF6;--bg:#1a1a2e;--sidebar-bg:#16213e;--text:#e8e8f0;--muted:#8888aa;--border:rgba(192,132,176,0.25);--input-bg:rgba(255,255,255,0.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden}
+#sidebar{width:310px;min-width:310px;background:var(--sidebar-bg);display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
+#st{padding:14px 16px 10px;border-bottom:1px solid var(--border)}
+#st h1{font-size:13px;font-weight:500;color:var(--accent);letter-spacing:.05em}
+#st p{font-size:10px;color:var(--muted);margin-top:2px}
+.tabs{display:flex;border-bottom:1px solid var(--border)}
+.tab{flex:1;padding:7px 2px;font-size:11px;text-align:center;cursor:pointer;color:var(--muted);border:none;background:transparent;transition:all .15s}
+.tab:hover{color:var(--text)}.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
+#panels{flex:1;overflow-y:auto;padding:12px}
+#panels::-webkit-scrollbar{width:3px}
+#panels::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.panel{display:none}.panel.active{display:block}
+.sec{margin-bottom:12px}
+.sl{font-size:10px;font-weight:500;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.field{margin-bottom:8px}
+.field label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px}
+.field input,.field textarea,.field select{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:12px;padding:5px 8px;outline:none;transition:border-color .15s;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.field textarea{min-height:60px}.field select option{background:#1a1a2e}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.tw{display:flex;flex-wrap:wrap;gap:4px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;padding:5px 7px;min-height:34px;cursor:text}
+.tw:focus-within{border-color:var(--accent)}
+.tg{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:11px}
+.tg.c{background:rgba(192,132,176,.2);color:var(--accent)}
+.tg.ok{background:rgba(52,211,153,.15);color:#6ee7b7}
+.tg.ng{background:rgba(239,68,68,.15);color:#f87171}
+.tg .x{cursor:pointer;opacity:.5;font-size:10px;margin-left:1px}.tg .x:hover{opacity:1}
+.ti{border:none;background:transparent;color:var(--text);font-size:12px;outline:none;flex:1;min-width:70px}
+.iu{background:var(--input-bg);border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;transition:border-color .15s}
+.iu:hover{border-color:var(--accent)}
+.iu.main-slot{height:110px;width:100%}
+.iu.sq{aspect-ratio:1}
+.iu img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.iu .ph{display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
+.iu .ph span{font-size:10px;color:var(--muted)}
+.ig3{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.ig2{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+#actions{padding:10px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.btn{width:100%;padding:7px 10px;border-radius:6px;font-size:12px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:1px solid var(--border);background:var(--input-bg);color:var(--text);transition:all .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.p{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;font-weight:500}
+.btn.p:hover{opacity:.9}
+.b2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#smsg{font-size:11px;color:var(--accent);text-align:center;min-height:16px}
+#right{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#111122}
+.zb{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid rgba(192,132,176,.15);font-size:11px;color:var(--muted);flex-shrink:0}
+.zb input[type=range]{width:90px;accent-color:var(--accent)}
+#pw{flex:1;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:20px}
+#pw::-webkit-scrollbar{width:5px}
+#pw::-webkit-scrollbar-thumb{background:rgba(192,132,176,.2);border-radius:3px}
+#tw2{transform-origin:top center;transition:transform .2s}
+canvas#cv{display:block;border-radius:4px;box-shadow:0 4px 32px rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<div id="sidebar">
+  <div id="st"><h1>委託資料製作工具</h1><p>填寫 → 即時預覽 → 輸出 PNG（Canvas 繪製，本地圖片完整支援）</p></div>
+  <div class="tabs">
+    <button class="tab active" onclick="sw('chara')">角色</button>
+    <button class="tab" onclick="sw('comm')">委託</button>
+    <button class="tab" onclick="sw('imgs')">圖片</button>
+    <button class="tab" onclick="sw('style')">樣式</button>
+  </div>
+  <div id="panels">
+    <div class="panel active" id="panel-chara">
+      <div class="sec"><div class="sl">基本資訊</div>
+        <div class="field"><label>角色名稱</label><input id="c-name" oninput="draw()" placeholder="角色名稱"></div>
+        <div class="field r2"><div><label>生日</label><input id="c-bday" oninput="draw()" placeholder="MM/DD"></div><div><label>年齡</label><input id="c-age" oninput="draw()" placeholder="19歲"></div></div>
+        <div class="field r2"><div><label>身高</label><input id="c-h" oninput="draw()" placeholder="168cm"></div><div><label>體重</label><input id="c-w" oninput="draw()" placeholder="54kg"></div></div>
+        <div class="field r2"><div><label>髮色</label><input id="c-hair" oninput="draw()" placeholder="銀白"></div><div><label>瞳色</label><input id="c-eye" oninput="draw()" placeholder="紫"></div></div>
+      </div>
+      <div class="sec"><div class="sl">性格與設定</div>
+        <div class="field"><label>個性</label><textarea id="c-pers" oninput="draw()" placeholder="冷靜外表下藏著熱情..."></textarea></div>
+        <div class="field"><label>背景設定</label><textarea id="c-bg" oninput="draw()" placeholder="世界觀、故事背景..."></textarea></div>
+      </div>
+      <div class="sec"><div class="sl">特徵標籤（Enter 新增）</div>
+        <div class="tw" onclick="this.querySelector('input').focus()"><span id="tags-chara"></span><input class="ti" id="ti-chara" onkeydown="addTag('chara',event)" placeholder="例: 貓耳"></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-comm">
+      <div class="sec"><div class="sl">委託需求</div>
+        <div class="field"><label>委託項目</label><input id="cm-type" oninput="draw()" placeholder="半身彩圖 / 立繪 / 表情包"></div>
+        <div class="field"><label>授權範圍</label><select id="cm-com" onchange="draw()"><option>非商業</option><option>商業使用</option></select></div>
+        <div class="field"><label>用途</label><input id="cm-plat" oninput="draw()" placeholder="個人使用 / 桌布 / 印製商品 / SNS"></div>
+        <div class="field"><label>需求描述</label><textarea id="cm-note" oninput="draw()" placeholder="情境、文字描述、tag&#10;例：戶外咖啡廳、白天、放鬆的表情、#casual #smile"></textarea></div>
+      </div>
+      <div class="sec"><div class="sl">OK 事項（Enter 新增）</div>
+        <div class="tw" onclick="this.querySelector('input').focus()"><span id="tags-ok"></span><input class="ti" id="ti-ok" onkeydown="addTag('ok',event)" placeholder="例: 原創背景"></div>
+      </div>
+      <div class="sec"><div class="sl">NG 事項（Enter 新增）</div>
+        <div class="tw" onclick="this.querySelector('input').focus()"><span id="tags-ng"></span><input class="ti" id="ti-ng" onkeydown="addTag('ng',event)" placeholder="例: 過激表現"></div>
+      </div>
+      <div class="sec"><div class="sl">聯絡資訊</div>
+        <div class="field r2"><div><label>名稱</label><input id="ct-name" oninput="draw()" placeholder="委託人名稱"></div><div><label>Twitter</label><input id="ct-tw" oninput="draw()" placeholder="@handle"></div></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-imgs">
+      <div class="sec"><div class="sl">主圖（最多2張，上下排列）</div>
+        <div class="field">
+          <label style="margin-bottom:5px;display:block">主圖 1（正面 / 單張設定圖）</label>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">建議尺寸：直圖 600×900、正方 800×800、橫圖 900×600</div>
+          <div class="iu main-slot" id="main-up" onclick="pickImg('main')">
+            <div class="ph"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>點擊上傳</span></div>
+          </div>
+        </div>
+        <div class="field">
+          <label style="margin-bottom:5px;display:block">主圖 2（反面 / 選填）</label>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">與主圖 1 相同比例效果最佳</div>
+          <div class="iu main-slot" id="main2-up" onclick="pickImg('main2')">
+            <div class="ph"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>點擊上傳（可不填）</span></div>
+          </div>
+        </div>
+        <input type="hidden" id="main-layout" value="stack">
+      </div>
+      <div class="sec"><div class="sl">小圖（表情包 / 特徵，最多6張）</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px">建議尺寸：200×200（正方形效果最佳）</div>
+        <div class="ig3" id="sg"></div>
+        <button class="btn" style="margin-top:7px;font-size:11px" id="add-s" onclick="addSlot('small')">+ 新增小圖</button>
+      </div>
+      <div class="sec"><div class="sl">參考圖（最多4張）</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px">建議尺寸：任意比例皆可，寬度建議 800px 以上</div>
+        <div class="ig2" id="rg"></div>
+        <button class="btn" style="margin-top:7px;font-size:11px" id="add-r" onclick="addSlot('ref')">+ 新增參考圖</button>
+      </div>
+    </div>
+    <div class="panel" id="panel-style">
+      <div class="sec"><div class="sl">主題色</div>
+        <div class="field r2"><div><label>強調色</label><input type="color" id="col-a" value="#C084B0" oninput="draw()"></div><div><label>輔助色</label><input type="color" id="col-b" value="#8B5CF6" oninput="draw()"></div></div>
+      </div>
+      <div class="sec"><div class="sl">左欄寬度</div>
+        <div class="field" style="display:flex;align-items:center;gap:8px">
+          <input type="range" min="20" max="55" value="35" id="col-pct" oninput="draw();g('col-pct-lbl').textContent=this.value+'%'" style="flex:1;accent-color:var(--accent)">
+          <span id="col-pct-lbl" style="font-size:11px;color:var(--muted);min-width:32px">35%</span>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:-2px">圖片比例自動決定高度，此滑桿調整左欄佔版面寬度</div>
+      </div>
+      <div class="sec"><div class="sl">輸出尺寸</div>
+        <div class="field"><select id="sz" onchange="draw()"><option value="900">標準 900px（推薦）</option><option value="1200">寬版 1200px</option><option value="1080">正方 1080px</option></select></div>
+      </div>
+      <div class="sec"><div class="sl">模板（存瀏覽器）</div>
+        <div class="field r2"><div><input id="tpl-n" placeholder="模板名稱"></div><div><button class="btn" onclick="saveTpl()">儲存</button></div></div>
+        <div id="tpl-list" style="display:flex;flex-direction:column;gap:5px;margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+  <div id="actions">
+    <div id="smsg"></div>
+    <div class="b2"><button class="btn" onclick="exportJSON()">匯出 JSON</button><button class="btn" onclick="g('ji').click()">匯入 JSON</button></div>
+    <button class="btn p" onclick="exportPNG()">輸出 PNG</button>
+    <input type="file" id="ji" accept=".json" style="display:none" onchange="importJSON(this)">
+    <input type="file" id="ii" accept="image/*" style="display:none" onchange="loadImgFile(this)">
+  </div>
+</div>
+<div id="right">
+  <div class="zb">
+    <span>縮放</span>
+    <input type="range" min="25" max="100" value="65" oninput="setZoom(this.value)">
+    <span id="zlbl">65%</span>
+    <span style="flex:1"></span>
+    <span style="font-size:10px;opacity:.35">Canvas 繪製 · 本地圖片完整支援</span>
+  </div>
+  <div id="pw"><div id="tw2"><canvas id="cv"></canvas></div></div>
+</div>
+<script>
+var T={chara:[],ok:[],ng:[]};
+var IMGS={main:null,main2:null,small:[],ref:[]};
+var imgTarget=null;
+var smallN=0,refN=0;
+var canvas=document.getElementById('cv');
+var ctx=canvas.getContext('2d');
+
+function g(id){return document.getElementById(id)}
+function v(id){var el=g(id);return el?el.value:''}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function setMsg(m){g('smsg').textContent=m}
+
+function sw(id){
+  var ids=['chara','comm','imgs','style'];
+  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',ids[i]===id)});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
+  g('panel-'+id).classList.add('active');
+}
+
+// tags
+function addTag(k,e){
+  if(e.key!=='Enter')return;
+  var inp=g('ti-'+k),val=inp.value.trim();
+  if(!val)return;
+  T[k].push(val);inp.value='';
+  renderTagUI(k);draw();
+}
+function removeTag(k,i){T[k].splice(i,1);renderTagUI(k);draw()}
+function renderTagUI(k){
+  var cls=k==='ng'?'ng':k==='ok'?'ok':'c';
+  g('tags-'+k).innerHTML=T[k].map(function(t,i){
+    return '<span class="tg '+cls+'">'+esc(t)+'<span class="x" onclick="removeTag(\''+k+'\','+i+')">✕</span></span>';
+  }).join('');
+}
+
+// images
+function pickImg(target){imgTarget=target;g('ii').click()}
+function addSlot(type){
+  if(type==='small'&&smallN>=6)return;
+  if(type==='ref'&&refN>=4)return;
+  var idx=type==='small'?smallN++:refN++;
+  IMGS[type][idx]=null;
+  var grid=g(type==='small'?'sg':'rg');
+  var d=document.createElement('div');
+  d.className='iu sq';d.id=type+'-'+idx;
+  d.innerHTML='<div class="ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>上傳</span></div>';
+  (function(t,i){d.onclick=function(){imgTarget={type:t,idx:i};g('ii').click()}})(type,idx);
+  grid.appendChild(d);
+  if(type==='small'&&smallN>=6)g('add-s').style.display='none';
+  if(type==='ref'&&refN>=4)g('add-r').style.display='none';
+}
+function loadImgFile(input){
+  var f=input.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    var im=new Image();im.src=e.target.result;
+    im.onload=function(){
+      if(imgTarget==='main'||imgTarget==='main2'){
+        IMGS[imgTarget]=im;
+        var box=g(imgTarget==='main'?'main-up':'main2-up');
+        var ex=box.querySelector('img');if(ex)ex.remove();
+        var el=document.createElement('img');el.src=e.target.result;box.appendChild(el);
+        box.querySelector('.ph').style.display='none';
+      } else {
+        var t=imgTarget.type,i=imgTarget.idx;
+        IMGS[t][i]=im;
+        var slot=g(t+'-'+i);
+        var ex2=slot.querySelector('img');if(ex2)ex2.remove();
+        var el2=document.createElement('img');el2.src=e.target.result;slot.appendChild(el2);
+        slot.querySelector('.ph').style.display='none';
+      }
+      input.value='';draw();
+    };
+  };
+  r.readAsDataURL(f);
+}
+
+// canvas drawing helpers
+function rr(c,x,y,w,h,r){
+  c.beginPath();c.moveTo(x+r,y);
+  c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);
+  c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);
+  c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);
+  c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);
+  c.closePath();
+}
+function imgCover(c,im,x,y,w,h,radius){
+  if(!im)return;
+  var s=Math.max(w/im.width,h/im.height);
+  var sw=im.width*s,sh=im.height*s;
+  c.save();rr(c,x,y,w,h,radius||6);c.clip();
+  c.drawImage(im,x+(w-sw)/2,y+(h-sh)/2,sw,sh);
+  c.restore();
+}
+function hex2rgba(hex,a){
+  var r=parseInt(hex.slice(1,3),16),g2=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return 'rgba('+r+','+g2+','+b+','+a+')';
+}
+function wrapT(c,text,x,y,maxW,lh,maxL){
+  if(!text)return y;
+  var chars=text.split(''),line='',drawn=0;
+  for(var i=0;i<chars.length;i++){
+    var ch=chars[i];
+    if(ch==='\n'){
+      if(maxL&&drawn>=maxL-1&&i<chars.length-1){c.fillText(line+'…',x,y);return y+lh}
+      c.fillText(line,x,y);y+=lh;line='';drawn++;continue;
+    }
+    var test=line+ch;
+    if(c.measureText(test).width>maxW&&line!==''){
+      if(maxL&&drawn>=maxL-1&&i<chars.length-1){c.fillText(line+'…',x,y);return y+lh}
+      c.fillText(line,x,y);y+=lh;line=ch;drawn++;
+    } else line=test;
+  }
+  if(line){c.fillText(line,x,y);y+=lh}
+  return y;
+}
+function tagRow(c,items,x,y,maxX,lh,fillColor,strokeColor,textColor){
+  var cx=x;
+  items.forEach(function(tag){
+    c.font="400 11px 'Noto Sans TC',sans-serif";
+    var tw=c.measureText(tag).width+16;
+    if(cx+tw>maxX){cx=x;y+=lh}
+    rr(c,cx,y-13,tw,19,10);
+    c.fillStyle=fillColor;c.fill();
+    c.strokeStyle=strokeColor;c.lineWidth=0.5;c.stroke();
+    c.fillStyle=textColor;c.fillText(tag,cx+8,y);
+    cx+=tw+5;
+  });
+  return y+lh;
+}
+
+function getStats(){
+  var s=[];
+  var pairs=[['c-bday','生日'],['c-age','年齡'],['c-h','身高'],['c-w','體重'],['c-hair','髮色'],['c-eye','瞳色']];
+  pairs.forEach(function(p){if(v(p[0]))s.push({k:p[1],v:v(p[0])})});
+  return s;
+}
+
+function draw(){
+  var W=parseInt(v('sz'))||900;
+  var ac=v('col-a')||'#C084B0';
+  var ac2=v('col-b')||'#8B5CF6';
+  var PAD=32,HDRH=90;
+  var colPct=(parseInt(v('col-pct'))||35)/100;
+  var layout=v('main-layout')||'side';
+  var hasMain2=!!IMGS.main2;
+
+  // --- compute left column width & main image block height ---
+  var leftW, mainBlockH;
+  if(!hasMain2){
+    // single image: leftW from slider, height from actual ratio
+    leftW=Math.round((W-PAD*2)*colPct);
+    if(IMGS.main){
+      var sc=Math.min(leftW/IMGS.main.width,1);
+      mainBlockH=Math.round(IMGS.main.height*sc);
+    } else {
+      mainBlockH=Math.round(leftW*(4/3)); // placeholder default
+    }
+  } else if(layout==='side'){
+    // two images side by side inside left column
+    leftW=Math.round((W-PAD*2)*colPct);
+    var halfW=Math.floor((leftW-6)/2);
+    var h1=IMGS.main  ? Math.round(halfW/IMGS.main.width *IMGS.main.height ) : Math.round(halfW*1.3);
+    var h2=IMGS.main2 ? Math.round(halfW/IMGS.main2.width*IMGS.main2.height) : Math.round(halfW*1.3);
+    mainBlockH=Math.max(h1,h2);
+  } else {
+    // stack: two images top/bottom, each spans full leftW
+    leftW=Math.round((W-PAD*2)*colPct);
+    var h1s=IMGS.main  ? Math.round(leftW/IMGS.main.width *IMGS.main.height ) : Math.round(leftW*1.3);
+    var h2s=IMGS.main2 ? Math.round(leftW/IMGS.main2.width*IMGS.main2.height) : Math.round(leftW*1.3);
+    mainBlockH=h1s+6+h2s;
+  }
+
+  var RX=PAD+leftW+20,RW=W-RX-PAD;
+  var stats=getStats();
+
+  // measure right column height
+  var tmpC=document.createElement('canvas').getContext('2d');
+  var ry=0;
+  ry+=50; // name + subtitle
+  if(stats.length)ry+=Math.ceil(stats.length/2)*34+10;
+  var pers=v('c-pers'),bg=v('c-bg');
+  if(pers){tmpC.font="400 12px sans-serif";var pl=0;pers.split('').forEach(function(c){if(c==='\n'){pl++}else{var t=tmpC.measureText(c);if(t)pl++}});ry+=18+Math.min(6,Math.ceil(wrapT(tmpC,pers,0,0,RW,18,6)/18))*18+10}
+  if(bg)ry+=18+60+10;
+  if(T.chara.length)ry+=18+Math.ceil(T.chara.length/4)*22+10;
+
+  var leftH=mainBlockH+(smallN>0?8+Math.ceil(smallN/3)*(Math.round(leftW/3)+5)+5:0);
+  var bodyH=Math.max(leftH,ry)+20;
+
+  // commission section height estimate (two-col layout)
+  var CH=30+30; // divider + title row + badge row
+  var leftCWe=Math.round((W-PAD*2-20)*0.4);
+  var rightCWe=W-PAD*2-20-leftCWe;
+  var lhe=0,rhe=0;
+  if(v('cm-plat'))lhe+=17+Math.min(3,v('cm-plat').length/12+1)*17+10;
+  if(T.ok.length)lhe+=17+Math.ceil(T.ok.length/3)*20+6;
+  if(T.ng.length)lhe+=17+Math.ceil(T.ng.length/3)*20+6;
+  var note=v('cm-note');
+  if(note)rhe+=17+Math.min(12,note.split('\n').length+2)*17+6;
+  CH+=Math.max(lhe,rhe);
+  var refImgs=IMGS.ref.filter(Boolean);
+  if(refImgs.length){
+    var mcw=Math.floor((W-PAD*2-(refImgs.length-1)*10)/refImgs.length);
+    var tallRef=0;
+    refImgs.forEach(function(im){var sc=Math.min(mcw/im.width,1);var dh=Math.round(im.height*sc);if(dh>tallRef)tallRef=dh;});
+    CH+=20+tallRef+16;
+  }
+
+  var FOOTER=48;
+  var H=HDRH+20+bodyH+24+CH+FOOTER+16;
+
+  // setup
+  canvas.width=W*2;canvas.height=H*2;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx.setTransform(2,0,0,2,0,0);
+
+  // BG
+  ctx.fillStyle='#f7f4f9';ctx.fillRect(0,0,W,H);
+  var g1=ctx.createRadialGradient(W*.95,H*.05,0,W*.95,H*.05,W*.5);
+  g1.addColorStop(0,hex2rgba(ac2,.07));g1.addColorStop(1,'transparent');
+  ctx.fillStyle=g1;ctx.fillRect(0,0,W,H);
+
+  // HEADER
+  var hg=ctx.createLinearGradient(0,0,W,HDRH);
+  hg.addColorStop(0,'#1a1a2e');hg.addColorStop(.5,'#16213e');hg.addColorStop(1,'#0f3460');
+  ctx.fillStyle=hg;ctx.fillRect(0,0,W,HDRH);
+  var lg=ctx.createLinearGradient(0,0,W,0);
+  lg.addColorStop(0,ac);lg.addColorStop(.5,ac2);lg.addColorStop(1,ac);
+  ctx.fillStyle=lg;ctx.fillRect(0,HDRH-3,W,3);
+  // HEADER left: 委託人資料
+  var ctName=v('ct-name'),ctTw=v('ct-tw');
+  ctx.fillStyle='rgba(255,255,255,.45)';
+  ctx.font="400 10px 'Noto Sans TC',sans-serif";
+  ctx.fillText('委託人',PAD,HDRH/2-4);
+  ctx.fillStyle='#fff';
+  ctx.font="700 20px 'Noto Serif TC',serif";
+  ctx.fillText(ctName||'（委託人名稱）',PAD,HDRH/2+14);
+  if(ctTw){
+    ctx.fillStyle='rgba(255,255,255,.55)';
+    ctx.font="400 11px 'Noto Sans TC',sans-serif";
+    ctx.fillText(ctTw,PAD,HDRH/2+28);
+  }
+  // header right: 委託項目 (right-aligned, two lines if needed)
+  var cmTypeVal=v('cm-type');
+  ctx.textAlign='right';
+  if(cmTypeVal){
+    ctx.fillStyle='rgba(255,255,255,.45)';
+    ctx.font="400 10px 'Noto Sans TC',sans-serif";
+    ctx.fillText('委託項目',W-PAD,HDRH/2-2);
+    ctx.fillStyle='#fff';
+    ctx.font="700 16px 'Noto Serif TC',serif";
+    ctx.fillText(cmTypeVal,W-PAD,HDRH/2+16);
+  } else {
+    ctx.fillStyle='rgba(255,255,255,.25)';
+    ctx.font="400 11px 'Noto Sans TC',sans-serif";
+    ctx.fillText('委託資料',W-PAD,HDRH/2+8);
+  }
+  ctx.textAlign='left';
+
+  // BODY
+  var y0=HDRH+20;
+
+  // LEFT: main image(s) — contain scaling, no crop
+  function drawContain(im,x,y,boxW,boxH,radius,placeholder){
+    rr(ctx,x,y,boxW,boxH,radius);
+    if(im){
+      var sc=Math.min(boxW/im.width,boxH/im.height);
+      var dw=Math.round(im.width*sc),dh=Math.round(im.height*sc);
+      var ox=x+Math.round((boxW-dw)/2),oy=y+Math.round((boxH-dh)/2);
+      ctx.fillStyle='#ede5f4';ctx.fill(); // bg behind letterbox
+      ctx.strokeStyle=hex2rgba(ac,.3);ctx.lineWidth=1.2;ctx.stroke();
+      ctx.save();rr(ctx,x,y,boxW,boxH,radius);ctx.clip();
+      ctx.drawImage(im,ox,oy,dw,dh);
+      ctx.restore();
+      ctx.strokeStyle=hex2rgba(ac,.3);ctx.lineWidth=1.2;
+      rr(ctx,x,y,boxW,boxH,radius);ctx.stroke();
+    } else {
+      ctx.fillStyle='#ede5f4';ctx.fill();
+      ctx.strokeStyle=hex2rgba(ac,.2);ctx.lineWidth=1;ctx.stroke();
+      ctx.fillStyle='#c4b0d4';ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.textAlign='center';
+      ctx.fillText(placeholder||'角色設定圖',x+boxW/2,y+boxH/2+4);ctx.textAlign='left';
+    }
+  }
+
+  if(!hasMain2){
+    drawContain(IMGS.main,PAD,y0,leftW,mainBlockH,7,'角色設定圖');
+  } else if(layout==='side'){
+    var hw=Math.floor((leftW-6)/2);
+    var h1d=IMGS.main  ? Math.round(hw/IMGS.main.width *IMGS.main.height ) : Math.round(hw*1.3);
+    var h2d=IMGS.main2 ? Math.round(hw/IMGS.main2.width*IMGS.main2.height) : Math.round(hw*1.3);
+    var tallH=Math.max(h1d,h2d);
+    drawContain(IMGS.main, PAD,      y0,hw,tallH,7,'正面');
+    drawContain(IMGS.main2,PAD+hw+6, y0,hw,tallH,7,'反面');
+  } else {
+    var w1=leftW,h1st=IMGS.main  ? Math.round(w1/IMGS.main.width *IMGS.main.height ) : Math.round(w1*1.3);
+    var w2=leftW,h2st=IMGS.main2 ? Math.round(w2/IMGS.main2.width*IMGS.main2.height) : Math.round(w2*1.3);
+    drawContain(IMGS.main, PAD,y0,      w1,h1st,7,'正面');
+    drawContain(IMGS.main2,PAD,y0+h1st+6,w2,h2st,7,'反面');
+  }
+
+  // small images
+  if(smallN>0){
+    var sy0=y0+mainBlockH+8;
+    var sW=Math.floor((leftW-(3-1)*5)/3);
+    for(var i=0;i<smallN;i++){
+      var scx=PAD+(i%3)*(sW+5),scy=sy0+Math.floor(i/3)*(sW+5);
+      if(IMGS.small[i]){
+        imgCover(ctx,IMGS.small[i],scx,scy,sW,sW,5);
+        ctx.strokeStyle=hex2rgba(ac,.2);ctx.lineWidth=.8;
+        rr(ctx,scx,scy,sW,sW,5);ctx.stroke();
+      } else {
+        rr(ctx,scx,scy,sW,sW,5);ctx.fillStyle='#ede5f4';ctx.fill();
+      }
+    }
+  }
+
+  // RIGHT
+  var ry2=y0;
+
+  // character name block
+  ctx.fillStyle=ac;ctx.fillRect(RX,ry2,3,34);
+  ctx.fillStyle='#1a1a2e';ctx.font="700 22px 'Noto Serif TC',serif";
+  ctx.fillText(v('c-name')||'角色名稱',RX+10,ry2+24);
+  ctx.fillStyle=hex2rgba(ac,.7);ctx.font="400 10px 'Noto Sans TC',sans-serif";
+  ctx.fillText('CHARACTER REFERENCE',RX+10,ry2+36);
+  ry2+=50;
+
+  // stats
+  if(stats.length){
+    var sCW=Math.floor((RW-8)/2);
+    stats.forEach(function(s,i){
+      var scx2=RX+(i%2)*(sCW+8),scy2=ry2+Math.floor(i/2)*34;
+      rr(ctx,scx2,scy2,sCW,28,5);
+      ctx.fillStyle=hex2rgba(ac2,.07);ctx.fill();
+      ctx.strokeStyle=hex2rgba(ac,.15);ctx.lineWidth=.5;ctx.stroke();
+      ctx.fillStyle='#8888aa';ctx.font="400 10px 'Noto Sans TC',sans-serif";
+      ctx.fillText(s.k,scx2+8,scy2+12);
+      ctx.fillStyle='#1a1a2e';ctx.font="500 12px 'Noto Sans TC',sans-serif";
+      ctx.fillText(s.v,scx2+8,scy2+24);
+    });
+    ry2+=Math.ceil(stats.length/2)*34+10;
+  }
+
+  function drawSec(title,content,maxLines){
+    if(!content)return;
+    // section title: 13px, with bottom spacing before content
+    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";
+    ctx.fillText(title,RX,ry2+13);
+    var tlen=ctx.measureText(title).width+10;
+    var tlg2=ctx.createLinearGradient(RX+tlen,0,RX+RW,0);
+    tlg2.addColorStop(0,hex2rgba(ac,.35));tlg2.addColorStop(1,'transparent');
+    ctx.strokeStyle=tlg2;ctx.lineWidth=0.6;
+    ctx.beginPath();ctx.moveTo(RX+tlen,ry2+8);ctx.lineTo(RX+RW,ry2+8);ctx.stroke();
+    ry2+=36; // gap after title
+    ctx.fillStyle='#2a2a3a';ctx.font="400 13px 'Noto Sans TC',sans-serif";
+    ry2=wrapT(ctx,content,RX,ry2,RW,20,maxLines||7);
+    ry2+=14; // gap after block
+  }
+
+  drawSec('個性',v('c-pers'),5);
+  drawSec('背景設定',v('c-bg'),4);
+
+  if(T.chara.length){
+    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText('特徵標籤',RX,ry2+13);
+    var tlen2=ctx.measureText('特徵標籤').width+10;
+    var tlg3=ctx.createLinearGradient(RX+tlen2,0,RX+RW,0);
+    tlg3.addColorStop(0,hex2rgba(ac,.35));tlg3.addColorStop(1,'transparent');
+    ctx.strokeStyle=tlg3;ctx.lineWidth=.6;
+    ctx.beginPath();ctx.moveTo(RX+tlen2,ry2+8);ctx.lineTo(RX+RW,ry2+8);ctx.stroke();
+    ry2+=36;
+    ry2=tagRow(ctx,T.chara,RX,ry2,RX+RW,24,hex2rgba(ac2,.12),hex2rgba(ac2,.25),'#6d4fc7');
+    ry2+=10;
+  }
+
+  // COMMISSION SECTION
+  var commY=Math.max(y0+mainBlockH+(smallN>0?8+Math.ceil(smallN/3)*(Math.floor((leftW-10)/3)+5):0),ry2)+20;
+  var dlg2=ctx.createLinearGradient(0,0,W,0);
+  dlg2.addColorStop(0,'transparent');dlg2.addColorStop(.1,hex2rgba(ac,.3));
+  dlg2.addColorStop(.9,hex2rgba(ac,.3));dlg2.addColorStop(1,'transparent');
+  ctx.strokeStyle=dlg2;ctx.lineWidth=.8;
+  ctx.beginPath();ctx.moveTo(PAD,commY);ctx.lineTo(W-PAD,commY);ctx.stroke();
+  commY+=16;
+
+  // ── row 1: 委託需求 title + 授權 badge ──
+  ctx.fillStyle='#1a1a2e';ctx.font="700 13px 'Noto Serif TC',serif";
+  ctx.fillText('委託需求',PAD,commY+12);
+  // 授權 badge right-aligned
+  var comVal=v('cm-com')||'非商業';
+  var isComm=comVal.indexOf('商業使用')>=0;
+  var badgeText=isComm?'商業使用':'非商業';
+  ctx.font="500 11px 'Noto Sans TC',sans-serif";
+  var bdW=ctx.measureText(badgeText).width+20,bdX=W-PAD-bdW,bdY=commY,bdH=22;
+  rr(ctx,bdX,bdY,bdW,bdH,11);
+  ctx.fillStyle=isComm?'rgba(251,191,36,.15)':'rgba(52,211,153,.15)';ctx.fill();
+  ctx.strokeStyle=isComm?'rgba(251,191,36,.5)':'rgba(52,211,153,.5)';ctx.lineWidth=.8;ctx.stroke();
+  ctx.fillStyle=isComm?'#d97706':'#059669';
+  ctx.textAlign='center';ctx.fillText(badgeText,bdX+bdW/2,bdY+bdH/2+4);ctx.textAlign='left';
+  commY+=30;
+
+  // ── two-column body: LEFT=用途+OK+NG  RIGHT=需求描述 ──
+  var colGap=20;
+  var leftCW=Math.round((W-PAD*2-colGap)*0.4);
+  var rightCW=W-PAD*2-colGap-leftCW;
+  var LX=PAD, RX2=PAD+leftCW+colGap;
+  var colStartY=commY;
+
+  // LEFT col
+  var ly=colStartY;
+  var platVal=v('cm-plat');
+  if(platVal){
+    ctx.fillStyle=hex2rgba(ac,.85);ctx.font="500 13px 'Noto Sans TC',sans-serif";
+    ctx.fillText('用途',LX,ly+13);
+    ly+=36;
+    ctx.fillStyle='#2a2a3a';ctx.font="400 13px 'Noto Sans TC',sans-serif";
+    ly=wrapT(ctx,platVal,LX,ly,leftCW,20,3);
+    ly+=12;
+  }
+  if(T.ok.length){
+    ctx.fillStyle='#059669';ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText('OK',LX,ly+13);
+    ly+=36;
+    ly=tagRow(ctx,T.ok,LX,ly,LX+leftCW,22,'rgba(52,211,153,.12)','rgba(52,211,153,.35)','#059669');
+    ly+=10;
+  }
+  if(T.ng.length){
+    ctx.fillStyle='#dc2626';ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText('NG',LX,ly+13);
+    ly+=36;
+    ly=tagRow(ctx,T.ng,LX,ly,LX+leftCW,22,'rgba(239,68,68,.1)','rgba(239,68,68,.3)','#dc2626');
+    ly+=10;
+  }
+
+  // RIGHT col: 需求描述
+  var rry=colStartY;
+  var note2=v('cm-note');
+  if(note2){
+    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText('需求描述',RX2,rry+13);
+    var nlen=ctx.measureText('需求描述').width+10;
+    var nlg=ctx.createLinearGradient(RX2+nlen,0,RX2+rightCW,0);
+    nlg.addColorStop(0,hex2rgba(ac,.35));nlg.addColorStop(1,'transparent');
+    ctx.strokeStyle=nlg;ctx.lineWidth=.6;
+    ctx.beginPath();ctx.moveTo(RX2+nlen,rry+8);ctx.lineTo(RX2+rightCW,rry+8);ctx.stroke();
+    rry+=36;
+    ctx.fillStyle='#2a2a3a';ctx.font="400 13px 'Noto Sans TC',sans-serif";
+    rry=wrapT(ctx,note2,RX2,rry,rightCW,20,12);
+    rry+=10;
+  }
+
+  commY=Math.max(ly,rry)+6;
+
+  var rImgs=IMGS.ref.filter(Boolean);
+  if(rImgs.length){
+    commY+=8;
+    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText('參考圖',PAD,commY+13);
+    var rlen=ctx.measureText('參考圖').width+10;
+    var rlg=ctx.createLinearGradient(PAD+rlen,0,W-PAD,0);
+    rlg.addColorStop(0,hex2rgba(ac,.35));rlg.addColorStop(1,'transparent');
+    ctx.strokeStyle=rlg;ctx.lineWidth=.6;
+    ctx.beginPath();ctx.moveTo(PAD+rlen,commY+8);ctx.lineTo(W-PAD,commY+8);ctx.stroke();
+    commY+=36;
+    var maxRefW=W-PAD*2;
+    var maxCellW=Math.floor((maxRefW-(rImgs.length-1)*10)/rImgs.length);
+    var tallest=0;
+    // first pass: compute each cell's displayed height (contain, no crop)
+    var cellDims=rImgs.map(function(im){
+      var scale=Math.min(maxCellW/im.width,1); // never upscale
+      var dw=Math.round(im.width*scale);
+      var dh=Math.round(im.height*scale);
+      if(tallest<dh)tallest=dh;
+      return{dw:dw,dh:dh};
+    });
+    // draw each
+    rImgs.forEach(function(im,i){
+      var d=cellDims[i];
+      var cx2=PAD+i*(maxCellW+10);
+      var cellH=d.dh;
+      // bg card
+      rr(ctx,cx2,commY,maxCellW,cellH,5);
+      ctx.fillStyle='#f0ebf7';ctx.fill();
+      ctx.strokeStyle=hex2rgba(ac,.2);ctx.lineWidth=.8;ctx.stroke();
+      // center horizontally inside maxCellW
+      var ox=cx2+Math.round((maxCellW-d.dw)/2);
+      ctx.save();rr(ctx,cx2,commY,maxCellW,cellH,5);ctx.clip();
+      ctx.drawImage(im,ox,commY,d.dw,d.dh);
+      ctx.restore();
+    });
+    commY+=tallest+8;
+  }
+
+  // FOOTER
+  var footY=H-FOOTER;
+  var fg2=ctx.createLinearGradient(0,footY,W,footY);
+  fg2.addColorStop(0,'#1a1a2e');fg2.addColorStop(1,'#16213e');
+  ctx.fillStyle=fg2;ctx.fillRect(0,footY,W,FOOTER);
+  var cn=v('ct-name'),cth=v('ct-tw');
+  if(cn||cth){
+    ctx.fillStyle='rgba(255,255,255,.45)';ctx.font="400 11px 'Noto Sans TC',sans-serif";
+    ctx.fillText(cn,PAD,footY+20);
+    ctx.fillStyle='rgba(255,255,255,.8)';ctx.font="500 11px 'Noto Sans TC',sans-serif";
+    ctx.fillText(cth,PAD+(cn?ctx.measureText(cn).width+4:0),footY+20);
+  }
+  ctx.fillStyle='rgba(255,255,255,.2)';ctx.font="400 10px 'Noto Sans TC',sans-serif";
+  ctx.textAlign='right';ctx.fillText('Commission Reference Sheet',W-PAD,footY+20);ctx.textAlign='left';
+}
+
+function setZoom(val){
+  g('zlbl').textContent=val+'%';
+  g('tw2').style.transform='scale('+val/100+')';
+  g('tw2').style.transformOrigin='top center';
+}
+function exportPNG(){
+  setMsg('生成中…');
+  setTimeout(function(){
+    try{
+      var a=document.createElement('a');
+      a.download=(v('c-name')||'commission')+'_ref.png';
+      a.href=canvas.toDataURL('image/png');a.click();
+      setMsg('');
+    }catch(e){setMsg('失敗: '+e.message)}
+  },50);
+}
+function getState(){
+  return{fields:{name:v('c-name'),bday:v('c-bday'),age:v('c-age'),h:v('c-h'),w:v('c-w'),hair:v('c-hair'),eye:v('c-eye'),pers:v('c-pers'),bg:v('c-bg'),cmType:v('cm-type'),cmCom:v('cm-com'),cmPlat:v('cm-plat'),cmNote:v('cm-note'),ctName:v('ct-name'),ctTw:v('ct-tw')},tags:JSON.parse(JSON.stringify(T)),ac:v('col-a'),ac2:v('col-b'),sz:v('sz'),colPct:v('col-pct'),mainLayout:v('main-layout')};
+}
+function applyState(s){
+  var f=s.fields||{};
+  var m={'c-name':'name','c-bday':'bday','c-age':'age','c-h':'h','c-w':'w','c-hair':'hair','c-eye':'eye','c-pers':'pers','c-bg':'bg','cm-type':'cmType','cm-com':'cmCom','cm-plat':'cmPlat','cm-note':'cmNote','ct-name':'ctName','ct-tw':'ctTw'};
+  Object.keys(m).forEach(function(id){if(g(id)&&f[m[id]]!=null)g(id).value=f[m[id]]});
+  T=s.tags||{chara:[],ok:[],ng:[]};
+  ['chara','ok','ng'].forEach(renderTagUI);
+  if(s.ac)g('col-a').value=s.ac;
+  if(s.ac2)g('col-b').value=s.ac2;
+  if(s.sz)g('sz').value=s.sz;
+  if(s.colPct){g('col-pct').value=s.colPct;g('col-pct-lbl').textContent=s.colPct+'%';}
+  if(s.mainLayout)g('main-layout').value=s.mainLayout;
+  draw();
+}
+function exportJSON(){
+  var blob=new Blob([JSON.stringify(getState(),null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.download=(v('c-name')||'commission')+'_data.json';a.href=URL.createObjectURL(blob);a.click();
+}
+function importJSON(input){
+  var f=input.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){try{applyState(JSON.parse(e.target.result))}catch(ex){setMsg('JSON 格式有誤')}input.value=''};
+  r.readAsText(f);
+}
+function saveTpl(){
+  var nm=v('tpl-n').trim();if(!nm){setMsg('請輸入模板名稱');return}
+  var tpls=JSON.parse(localStorage.getItem('ctpls')||'{}');
+  tpls[nm]=getState();localStorage.setItem('ctpls',JSON.stringify(tpls));
+  g('tpl-n').value='';setMsg('已儲存：'+nm);renderTpls();
+}
+function renderTpls(){
+  var tpls=JSON.parse(localStorage.getItem('ctpls')||'{}'),keys=Object.keys(tpls);
+  var el=g('tpl-list');
+  if(!keys.length){el.innerHTML='<div style="font-size:10px;color:var(--muted)">尚無模板</div>';return}
+  el.innerHTML=keys.map(function(k){
+    return '<div style="display:flex;gap:5px"><button class="btn" style="flex:1;text-align:left;font-size:11px" onclick="loadTpl(\''+k.replace(/'/g,"\\'")+'\')">'+ esc(k) +'</button><button class="btn" style="padding:5px 8px;font-size:10px;color:#f87171" onclick="delTpl(\''+k.replace(/'/g,"\\'")+'\')">✕</button></div>';
+  }).join('');
+}
+function loadTpl(k){var tpls=JSON.parse(localStorage.getItem('ctpls')||'{}');if(tpls[k])applyState(tpls[k])}
+function delTpl(k){var tpls=JSON.parse(localStorage.getItem('ctpls')||'{}');delete tpls[k];localStorage.setItem('ctpls',JSON.stringify(tpls));renderTpls()}
+
+draw();setZoom(65);renderTpls();
+</script>
+</body>
+</html>
