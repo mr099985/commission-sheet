@@ -10,11 +10,15 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden}
 #sidebar{width:310px;min-width:310px;background:var(--sidebar-bg);display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
-#st{padding:14px 16px 10px;border-bottom:1px solid var(--border)}
-#st h1{font-size:13px;font-weight:500;color:var(--accent);letter-spacing:.05em}
-#st p{font-size:10px;color:var(--muted);margin-top:2px}
+#st{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+#st-text h1{font-size:13px;font-weight:500;color:var(--accent);letter-spacing:.05em}
+#st-text p{font-size:10px;color:var(--muted);margin-top:2px}
+#lang-sw{display:flex;gap:3px;flex-shrink:0;margin-top:1px}
+.lbtn{padding:2px 6px;font-size:10px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .15s}
+.lbtn:hover{color:var(--text);border-color:var(--accent)}
+.lbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .tabs{display:flex;border-bottom:1px solid var(--border)}
-.tab{flex:1;padding:7px 2px;font-size:11px;text-align:center;cursor:pointer;color:var(--muted);border:none;background:transparent;transition:all .15s}
+.tab{flex:1;padding:7px 2px;font-size:11px;text-align:center;cursor:pointer;color:var(--muted);border:none;background:transparent;transition:all .15s;font-family:inherit}
 .tab:hover{color:var(--text)}.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
 #panels{flex:1;overflow-y:auto;padding:12px}
 #panels::-webkit-scrollbar{width:3px}
@@ -28,6 +32,14 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
 .field textarea{min-height:60px}.field select option{background:#1a1a2e}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.radio-row{display:flex;gap:8px;align-items:center;padding:5px 0}
+.radio-opt{display:flex;align-items:center;gap:5px;cursor:pointer;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);transition:all .15s;font-size:12px;color:var(--muted)}
+.radio-opt:hover{border-color:var(--accent);color:var(--text)}
+.radio-opt input[type=radio]{display:none}
+.radio-opt.selected{background:rgba(192,132,176,.15);border-color:var(--accent);color:var(--accent)}
+.radio-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid currentColor;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.radio-opt.selected .radio-dot::after{content:'';width:4px;height:4px;border-radius:50%;background:var(--accent);display:block}
 .tw{display:flex;flex-wrap:wrap;gap:4px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;padding:5px 7px;min-height:34px;cursor:text}
 .tw:focus-within{border-color:var(--accent)}
 .tg{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:11px}
@@ -64,118 +76,587 @@ canvas#cv{display:block;border-radius:4px;box-shadow:0 4px 32px rgba(0,0,0,.5)}
 </head>
 <body>
 <div id="sidebar">
-  <div id="st"><h1>委託資料製作工具</h1><p>填寫 → 即時預覽 → 輸出 PNG（Canvas 繪製，本地圖片完整支援）</p></div>
+  <div id="st">
+    <div id="st-text">
+      <h1 id="ui-title">委託資料製作工具</h1>
+      <p id="ui-subtitle">填寫 → 即時預覽 → 輸出 PNG</p>
+    </div>
+    <div id="lang-sw">
+      <button class="lbtn active" onclick="setLang('zh')">繁中</button>
+      <button class="lbtn" onclick="setLang('ja')">日本語</button>
+      <button class="lbtn" onclick="setLang('en')">EN</button>
+      <button class="lbtn" onclick="setLang('ko')">한국어</button>
+    </div>
+  </div>
   <div class="tabs">
-    <button class="tab active" onclick="sw('chara')">角色</button>
-    <button class="tab" onclick="sw('comm')">委託</button>
-    <button class="tab" onclick="sw('imgs')">圖片</button>
-    <button class="tab" onclick="sw('style')">樣式</button>
+    <button class="tab active" id="tab-chara" onclick="sw('chara')"></button>
+    <button class="tab" id="tab-comm" onclick="sw('comm')"></button>
+    <button class="tab" id="tab-imgs" onclick="sw('imgs')"></button>
+    <button class="tab" id="tab-style" onclick="sw('style')"></button>
   </div>
   <div id="panels">
     <div class="panel active" id="panel-chara">
-      <div class="sec"><div class="sl">基本資訊</div>
-        <div class="field"><label>角色名稱</label><input id="c-name" oninput="draw()" placeholder="角色名稱"></div>
-        <div class="field r2"><div><label>生日</label><input id="c-bday" oninput="draw()" placeholder="MM/DD"></div><div><label>年齡</label><input id="c-age" oninput="draw()" placeholder="19歲"></div></div>
-        <div class="field r2"><div><label>身高</label><input id="c-h" oninput="draw()" placeholder="168cm"></div><div><label>體重</label><input id="c-w" oninput="draw()" placeholder="54kg"></div></div>
-        <div class="field r2"><div><label>髮色</label><input id="c-hair" oninput="draw()" placeholder="銀白"></div><div><label>瞳色</label><input id="c-eye" oninput="draw()" placeholder="紫"></div></div>
+      <div class="sec"><div class="sl" id="sl-basic"></div>
+        <div class="field"><label id="lbl-cname"></label><input id="c-name" oninput="draw()"></div>
+        <div class="field r3">
+          <div><label id="lbl-gender"></label><input id="c-gender" oninput="draw()"></div>
+          <div><label id="lbl-bday"></label><input id="c-bday" oninput="draw()"></div>
+          <div><label id="lbl-age"></label><input id="c-age" oninput="draw()"></div>
+        </div>
+        <div class="field r3">
+          <div><label id="lbl-height"></label><input id="c-h" oninput="draw()"></div>
+          <div><label id="lbl-weight"></label><input id="c-w" oninput="draw()"></div>
+          <div><label id="lbl-body"></label><input id="c-body" oninput="draw()"></div>
+        </div>
+        <div class="field r3">
+          <div><label id="lbl-hair"></label><input id="c-hair" oninput="draw()"></div>
+          <div><label id="lbl-eye"></label><input id="c-eye" oninput="draw()"></div>
+          <div><label id="lbl-skin"></label><input id="c-skin" oninput="draw()"></div>
+        </div>
       </div>
-      <div class="sec"><div class="sl">性格與設定</div>
-        <div class="field"><label>個性</label><textarea id="c-pers" oninput="draw()" placeholder="冷靜外表下藏著熱情..."></textarea></div>
-        <div class="field"><label>背景設定</label><textarea id="c-bg" oninput="draw()" placeholder="世界觀、故事背景..."></textarea></div>
+      <div class="sec"><div class="sl" id="sl-persona"></div>
+        <div class="field"><label id="lbl-pers"></label><textarea id="c-pers" oninput="draw()"></textarea></div>
+        <div class="field"><label id="lbl-bg"></label><textarea id="c-bg" oninput="draw()"></textarea></div>
       </div>
-      <div class="sec"><div class="sl">特徵標籤（Enter 新增）</div>
-        <div class="tw" onclick="this.querySelector('input').focus()"><span id="tags-chara"></span><input class="ti" id="ti-chara" onkeydown="addTag('chara',event)" placeholder="例: 貓耳"></div>
+      <div class="sec"><div class="sl" id="sl-chartags"></div>
+        <div class="tw" onclick="this.querySelector('input').focus()"><span id="tags-chara"></span><input class="ti" id="ti-chara" onkeydown="addTag('chara',event)"></div>
       </div>
     </div>
     <div class="panel" id="panel-comm">
-      <div class="sec"><div class="sl">委託需求</div>
-        <div class="field"><label>委託項目</label><input id="cm-type" oninput="draw()" placeholder="半身彩圖 / 立繪 / 表情包"></div>
-        <div class="field"><label>授權範圍</label><select id="cm-com" onchange="draw()"><option>非商業</option><option>商業使用</option></select></div>
-        <div class="field"><label>用途</label><input id="cm-plat" oninput="draw()" placeholder="個人使用 / 桌布 / 印製商品 / SNS"></div>
-        <div class="field"><label>需求描述</label><textarea id="cm-note" oninput="draw()" placeholder="情境、文字描述、tag&#10;例：戶外咖啡廳、白天、放鬆的表情、#casual #smile"></textarea></div>
+      <div class="sec"><div class="sl" id="sl-commreq"></div>
+        <div class="field"><label id="lbl-cmtype"></label><input id="cm-type" oninput="draw()"></div>
+        <div class="field"><label id="lbl-cmnote"></label><textarea id="cm-note" oninput="draw()"></textarea></div>
       </div>
-      <div class="sec"><div class="sl">OK 事項（Enter 新增）</div>
-        <div class="tw" onclick="this.querySelector('input').focus()"><span id="tags-ok"></span><input class="ti" id="ti-ok" onkeydown="addTag('ok',event)" placeholder="例: 原創背景"></div>
+      <div class="sec">
+        <div class="field">
+          <label id="lbl-cmcom"></label>
+          <div class="radio-row">
+            <label class="radio-opt selected" id="radio-noncom" onclick="setLicense('noncom')">
+              <input type="radio" name="cm-com" value="noncom" checked>
+              <span class="radio-dot"></span>
+              <span id="opt-noncom"></span>
+            </label>
+            <label class="radio-opt" id="radio-com" onclick="setLicense('com')">
+              <input type="radio" name="cm-com" value="com">
+              <span class="radio-dot"></span>
+              <span id="opt-com"></span>
+            </label>
+          </div>
+        </div>
+        <div class="field"><label id="lbl-cmplat"></label><input id="cm-plat" oninput="draw()"></div>
       </div>
-      <div class="sec"><div class="sl">NG 事項（Enter 新增）</div>
-        <div class="tw" onclick="this.querySelector('input').focus()"><span id="tags-ng"></span><input class="ti" id="ti-ng" onkeydown="addTag('ng',event)" placeholder="例: 過激表現"></div>
+      <div class="sec"><div class="sl" id="sl-ok"></div>
+        <div class="tw" onclick="this.querySelector('input').focus()"><span id="tags-ok"></span><input class="ti" id="ti-ok" onkeydown="addTag('ok',event)"></div>
       </div>
-      <div class="sec"><div class="sl">聯絡資訊</div>
-        <div class="field r2"><div><label>名稱</label><input id="ct-name" oninput="draw()" placeholder="委託人名稱"></div><div><label>Twitter</label><input id="ct-tw" oninput="draw()" placeholder="@handle"></div></div>
+      <div class="sec"><div class="sl" id="sl-ng"></div>
+        <div class="tw" onclick="this.querySelector('input').focus()"><span id="tags-ng"></span><input class="ti" id="ti-ng" onkeydown="addTag('ng',event)"></div>
+      </div>
+      <div class="sec"><div class="sl" id="sl-contact"></div>
+        <div class="field r2">
+          <div><label id="lbl-ctname"></label><input id="ct-name" oninput="draw()"></div>
+          <div><label>Twitter</label><input id="ct-tw" oninput="draw()" placeholder="@handle"></div>
+        </div>
       </div>
     </div>
     <div class="panel" id="panel-imgs">
-      <div class="sec"><div class="sl">主圖（最多2張，上下排列）</div>
+      <div class="sec"><div class="sl" id="sl-mainimg"></div>
         <div class="field">
-          <label style="margin-bottom:5px;display:block">主圖 1（正面 / 單張設定圖）</label>
-          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">建議尺寸：直圖 600×900、正方 800×800、橫圖 900×600</div>
+          <label id="lbl-main1" style="margin-bottom:5px;display:block"></label>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px" id="hint-main1"></div>
           <div class="iu main-slot" id="main-up" onclick="pickImg('main')">
-            <div class="ph"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>點擊上傳</span></div>
+            <div class="ph"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span id="hint-upload"></span></div>
           </div>
         </div>
         <div class="field">
-          <label style="margin-bottom:5px;display:block">主圖 2（反面 / 選填）</label>
-          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">與主圖 1 相同比例效果最佳</div>
+          <label id="lbl-main2" style="margin-bottom:5px;display:block"></label>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px" id="hint-main2"></div>
           <div class="iu main-slot" id="main2-up" onclick="pickImg('main2')">
-            <div class="ph"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>點擊上傳（可不填）</span></div>
+            <div class="ph"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span id="hint-upload2"></span></div>
           </div>
         </div>
         <input type="hidden" id="main-layout" value="stack">
       </div>
-      <div class="sec"><div class="sl">小圖（表情包 / 特徵，最多6張）</div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:6px">建議尺寸：200×200（正方形效果最佳）</div>
+      <div class="sec"><div class="sl" id="sl-smallimg"></div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px" id="hint-small"></div>
         <div class="ig3" id="sg"></div>
-        <button class="btn" style="margin-top:7px;font-size:11px" id="add-s" onclick="addSlot('small')">+ 新增小圖</button>
+        <button class="btn" style="margin-top:7px;font-size:11px" id="add-s" onclick="addSlot('small')" id="btn-adds"></button>
       </div>
-      <div class="sec"><div class="sl">參考圖（最多4張）</div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:6px">建議尺寸：任意比例皆可，寬度建議 800px 以上</div>
+      <div class="sec"><div class="sl" id="sl-refimg"></div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px" id="hint-ref"></div>
         <div class="ig2" id="rg"></div>
-        <button class="btn" style="margin-top:7px;font-size:11px" id="add-r" onclick="addSlot('ref')">+ 新增參考圖</button>
+        <button class="btn" style="margin-top:7px;font-size:11px" id="add-r" onclick="addSlot('ref')" id="btn-addr"></button>
       </div>
     </div>
     <div class="panel" id="panel-style">
-      <div class="sec"><div class="sl">主題色</div>
-        <div class="field r2"><div><label>強調色</label><input type="color" id="col-a" value="#C084B0" oninput="draw()"></div><div><label>輔助色</label><input type="color" id="col-b" value="#8B5CF6" oninput="draw()"></div></div>
+      <div class="sec"><div class="sl" id="sl-theme"></div>
+        <div class="field r2">
+          <div><label id="lbl-cola"></label><input type="color" id="col-a" value="#C084B0" oninput="draw()"></div>
+          <div><label id="lbl-colb"></label><input type="color" id="col-b" value="#8B5CF6" oninput="draw()"></div>
+        </div>
       </div>
-      <div class="sec"><div class="sl">左欄寬度</div>
+      <div class="sec"><div class="sl" id="sl-colors"></div>
+        <div class="field r2">
+          <div><label id="lbl-col-bg"></label><input type="color" id="col-bg" value="#f7f4f9" oninput="draw()"></div>
+          <div><label id="lbl-col-text"></label><input type="color" id="col-text" value="#1a1a2e" oninput="draw()"></div>
+        </div>
+        <div class="field r2">
+          <div><label id="lbl-col-label"></label><input type="color" id="col-label" value="#8888aa" oninput="draw()"></div>
+          <div><label id="lbl-col-card"></label><input type="color" id="col-card" value="#ede5f4" oninput="draw()"></div>
+        </div>
+      </div>
+      <div class="sec"><div class="sl" id="sl-colwidth"></div>
         <div class="field" style="display:flex;align-items:center;gap:8px">
           <input type="range" min="20" max="55" value="35" id="col-pct" oninput="draw();g('col-pct-lbl').textContent=this.value+'%'" style="flex:1;accent-color:var(--accent)">
           <span id="col-pct-lbl" style="font-size:11px;color:var(--muted);min-width:32px">35%</span>
         </div>
-        <div style="font-size:10px;color:var(--muted);margin-top:-2px">圖片比例自動決定高度，此滑桿調整左欄佔版面寬度</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:-2px" id="hint-colwidth"></div>
       </div>
-      <div class="sec"><div class="sl">輸出尺寸</div>
-        <div class="field"><select id="sz" onchange="draw()"><option value="900">標準 900px（推薦）</option><option value="1200">寬版 1200px</option><option value="1080">正方 1080px</option></select></div>
+      <div class="sec"><div class="sl" id="sl-outsize"></div>
+        <div class="field">
+          <select id="sz" onchange="draw()">
+            <option value="900" id="opt-sz900"></option>
+            <option value="1200" id="opt-sz1200"></option>
+            <option value="1080" id="opt-sz1080"></option>
+          </select>
+        </div>
       </div>
-      <div class="sec"><div class="sl">模板（存瀏覽器）</div>
-        <div class="field r2"><div><input id="tpl-n" placeholder="模板名稱"></div><div><button class="btn" onclick="saveTpl()">儲存</button></div></div>
+      <div class="sec"><div class="sl" id="sl-tpl"></div>
+        <div class="field r2">
+          <div><input id="tpl-n" id="input-tplname"></div>
+          <div><button class="btn" id="btn-savetpl" onclick="saveTpl()"></button></div>
+        </div>
         <div id="tpl-list" style="display:flex;flex-direction:column;gap:5px;margin-top:6px"></div>
       </div>
     </div>
   </div>
   <div id="actions">
     <div id="smsg"></div>
-    <div class="b2"><button class="btn" onclick="exportJSON()">匯出 JSON</button><button class="btn" onclick="g('ji').click()">匯入 JSON</button></div>
-    <button class="btn p" onclick="exportPNG()">輸出 PNG</button>
+    <div class="b2">
+      <button class="btn" id="btn-expjson" onclick="exportJSON()"></button>
+      <button class="btn" id="btn-impjson" onclick="g('ji').click()"></button>
+    </div>
+    <button class="btn p" id="btn-exppng" onclick="exportPNG()"></button>
     <input type="file" id="ji" accept=".json" style="display:none" onchange="importJSON(this)">
     <input type="file" id="ii" accept="image/*" style="display:none" onchange="loadImgFile(this)">
   </div>
 </div>
 <div id="right">
   <div class="zb">
-    <span>縮放</span>
+    <span id="lbl-zoom">縮放</span>
     <input type="range" min="25" max="100" value="65" oninput="setZoom(this.value)">
     <span id="zlbl">65%</span>
     <span style="flex:1"></span>
-    <span style="font-size:10px;opacity:.35">Canvas 繪製 · 本地圖片完整支援</span>
+    <span style="font-size:10px;opacity:.35" id="lbl-hint-right">Canvas 繪製 · 本地圖片完整支援</span>
   </div>
   <div id="pw"><div id="tw2"><canvas id="cv"></canvas></div></div>
 </div>
+
 <script>
+// ── Language Dictionaries ──────────────────────────────────────────────
+var LANGS = {
+  zh: {
+    // UI chrome
+    'ui-title':       '委託資料製作工具',
+    'ui-subtitle':    '填寫 → 即時預覽 → 輸出 PNG',
+    'lbl-zoom':       '縮放',
+    'lbl-hint-right': 'Canvas 繪製 · 本地圖片完整支援',
+    // Tabs
+    'tab-chara': '角色', 'tab-comm': '委託', 'tab-imgs': '圖片', 'tab-style': '樣式',
+    // Chara tab
+    'sl-basic':    '基本資訊',
+    'lbl-cname':   '角色名稱',   'ph-cname':   '角色名稱',
+    'lbl-gender':  '性別',       'ph-gender':  '女',
+    'lbl-bday':    '生日',       'ph-bday':    'MM/DD',
+    'lbl-age':     '年齡',       'ph-age':     '19歲',
+    'lbl-height':  '身高',       'ph-height':  '168cm',
+    'lbl-weight':  '體重',       'ph-weight':  '54kg',
+    'lbl-body':    '體型描述',   'ph-body':    '纖細',
+    'lbl-hair':    '髮色',       'ph-hair':    '銀白',
+    'lbl-eye':     '瞳色',       'ph-eye':     '紫',
+    'lbl-skin':    '膚色',       'ph-skin':    '白皙',
+    'sl-persona':  '性格與設定',
+    'lbl-pers':    '個性',       'ph-pers':    '冷靜外表下藏著熱情...',
+    'lbl-bg':      '背景設定',   'ph-bg':      '世界觀、故事背景...',
+    'sl-chartags': '特徵標籤（Enter 新增）', 'ph-chartags': '例: 貓耳',
+    // Comm tab
+    'sl-commreq':  '委託需求',
+    'lbl-cmtype':  '委託項目',   'ph-cmtype':  '半身彩圖 / 立繪 / 表情包',
+    'lbl-cmcom':   '授權範圍',
+    'opt-noncom':  '非商業',     'opt-com':    '商業使用',
+    'lbl-cmplat':  '用途',       'ph-cmplat':  '個人使用 / 桌布 / 印製商品 / SNS',
+    'lbl-cmnote':  '需求描述',   'ph-cmnote':  '情境、文字描述、tag\n例：戶外咖啡廳、白天、放鬆的表情、#casual #smile',
+    'sl-ok':       'OK 事項（Enter 新增）', 'ph-ok': '例: 原創背景',
+    'sl-ng':       'NG 事項（Enter 新增）', 'ph-ng': '例: 過激表現',
+    'sl-contact':  '聯絡資訊',
+    'lbl-ctname':  '名稱',       'ph-ctname':  '委託人名稱',
+    // Imgs tab
+    'sl-mainimg':  '主圖（最多2張，上下排列）',
+    'lbl-main1':   '主圖 1（正面 / 單張設定圖）',
+    'hint-main1':  '建議尺寸：直圖 600×900、正方 800×800、橫圖 900×600',
+    'hint-upload': '點擊上傳',
+    'lbl-main2':   '主圖 2（反面 / 選填）',
+    'hint-main2':  '與主圖 1 相同比例效果最佳',
+    'hint-upload2':'點擊上傳（可不填）',
+    'sl-smallimg': '小圖（表情包 / 特徵，最多6張）',
+    'hint-small':  '建議尺寸：200×200（正方形效果最佳）',
+    'btn-adds':    '+ 新增小圖',
+    'sl-refimg':   '參考圖（最多4張）',
+    'hint-ref':    '建議尺寸：任意比例皆可，寬度建議 800px 以上',
+    'btn-addr':    '+ 新增參考圖',
+    // Style tab
+    'sl-theme':    '主題色',
+    'lbl-cola':    '強調色',     'lbl-colb': '輔助色',
+    'sl-colors':   '內容顏色',
+    'lbl-col-bg':  '背景色',     'lbl-col-text':  '主文字',
+    'lbl-col-label':'標籤文字',  'lbl-col-card':  '卡片背景',
+    'sl-colwidth': '左欄寬度',
+    'hint-colwidth':'圖片比例自動決定高度，此滑桿調整左欄佔版面寬度',
+    'sl-outsize':  '輸出尺寸',
+    'opt-sz900':   '標準 900px（推薦）',
+    'opt-sz1200':  '寬版 1200px',
+    'opt-sz1080':  '正方 1080px',
+    'sl-tpl':      '模板（存瀏覽器）',
+    'ph-tplname':  '模板名稱',   'btn-savetpl': '儲存',
+    // Actions
+    'btn-expjson': '匯出 JSON',  'btn-impjson': '匯入 JSON',
+    'btn-exppng':  '輸出 PNG',
+    // Canvas labels (used in draw())
+    'cv-client':     '委託人',
+    'cv-commtype':   '委託項目',
+    'cv-refsheet':   '委託資料',
+    'cv-charref':    'CHARACTER REFERENCE',
+    'cv-birthday':   '生日', 'cv-age': '年齡', 'cv-height': '身高',
+    'cv-weight':     '體重', 'cv-hair': '髮色', 'cv-eye': '瞳色',
+    'cv-gender':     '性別', 'cv-body': '體型', 'cv-skin': '膚色',
+    'cv-persona':    '個性', 'cv-bgsetting': '背景設定', 'cv-chartags': '特徵標籤',
+    'cv-commreq':    '委託需求',
+    'cv-noncom':     '非商業',   'cv-com': '商業使用',
+    'cv-usage':      '用途',
+    'cv-ok':         'OK',       'cv-ng': 'NG',
+    'cv-notes':      '需求描述',
+    'cv-refimgs':    '參考圖',
+    'cv-footer':     'Commission Reference Sheet',
+    'cv-front':      '正面',     'cv-back': '反面',
+    'cv-chara-ph':   '角色設定圖',
+    'msg-saving':    '生成中…',  'msg-tplsaved': '已儲存：',
+    'msg-notplname': '請輸入模板名稱', 'msg-badJSON': 'JSON 格式有誤',
+    'tpl-empty':     '尚無模板',
+  },
+  ja: {
+    'ui-title':       '依頼資料作成ツール',
+    'ui-subtitle':    '入力 → リアルタイムプレビュー → PNG出力',
+    'lbl-zoom':       'ズーム',
+    'lbl-hint-right': 'Canvasレンダリング · ローカル画像対応',
+    'tab-chara': 'キャラ', 'tab-comm': '依頼', 'tab-imgs': '画像', 'tab-style': 'スタイル',
+    'sl-basic':    '基本情報',
+    'lbl-cname':   'キャラ名',   'ph-cname':   'キャラクター名',
+    'lbl-gender':  '性別',       'ph-gender':  '女',
+    'lbl-bday':    '誕生日',     'ph-bday':    'MM/DD',
+    'lbl-age':     '年齢',       'ph-age':     '19歳',
+    'lbl-height':  '身長',       'ph-height':  '168cm',
+    'lbl-weight':  '体重',       'ph-weight':  '54kg',
+    'lbl-body':    '体型',       'ph-body':    'スレンダー',
+    'lbl-hair':    '髪色',       'ph-hair':    '銀白',
+    'lbl-eye':     '瞳色',       'ph-eye':     '紫',
+    'lbl-skin':    '肌色',       'ph-skin':    '白い',
+    'sl-persona':  '性格・設定',
+    'lbl-pers':    '性格',       'ph-pers':    '冷静な外見の下に情熱を秘めて...',
+    'lbl-bg':      '背景設定',   'ph-bg':      '世界観・ストーリー背景...',
+    'sl-chartags': '特徴タグ（Enterで追加）', 'ph-chartags': '例: 猫耳',
+    'sl-commreq':  '依頼内容',
+    'lbl-cmtype':  '依頼種類',   'ph-cmtype':  '半身カラー / 立ち絵 / 表情集',
+    'lbl-cmcom':   '使用許可',
+    'opt-noncom':  '非商業',     'opt-com':    '商業利用',
+    'lbl-cmplat':  '用途',       'ph-cmplat':  '個人利用 / 壁紙 / グッズ / SNS',
+    'lbl-cmnote':  '依頼詳細',   'ph-cmnote':  'シチュエーション・説明・タグ\n例：カフェ・昼・リラックスした表情・#casual #smile',
+    'sl-ok':       'OKな内容（Enterで追加）', 'ph-ok': '例: オリジナル背景',
+    'sl-ng':       'NGな内容（Enterで追加）', 'ph-ng': '例: 過激な表現',
+    'sl-contact':  '連絡先',
+    'lbl-ctname':  '名前',       'ph-ctname':  '依頼者名',
+    'sl-mainimg':  'メイン画像（最大2枚）',
+    'lbl-main1':   'メイン画像1（正面 / 設定画）',
+    'hint-main1':  '推奨サイズ：縦600×900・正方800×800・横900×600',
+    'hint-upload': 'クリックしてアップロード',
+    'lbl-main2':   'メイン画像2（背面 / 任意）',
+    'hint-main2':  'メイン画像1と同じ比率が最適',
+    'hint-upload2':'クリックしてアップロード（任意）',
+    'sl-smallimg': 'サブ画像（表情集・特徴、最大6枚）',
+    'hint-small':  '推奨サイズ：200×200（正方形推奨）',
+    'btn-adds':    '+ サブ画像を追加',
+    'sl-refimg':   '参考画像（最大4枚）',
+    'hint-ref':    '比率は自由、横幅800px以上推奨',
+    'btn-addr':    '+ 参考画像を追加',
+    'sl-theme':    'テーマカラー',
+    'lbl-cola':    'アクセント',  'lbl-colb': 'サブカラー',
+    'sl-colors':   'コンテンツカラー',
+    'lbl-col-bg':  '背景色',      'lbl-col-text':  'メインテキスト',
+    'lbl-col-label':'ラベル文字', 'lbl-col-card':  'カード背景',
+    'sl-colwidth': '左カラム幅',
+    'hint-colwidth':'画像比率により高さを自動調整・スライダーで左カラム幅を変更',
+    'sl-outsize':  '出力サイズ',
+    'opt-sz900':   '標準 900px（推奨）',
+    'opt-sz1200':  '横長 1200px',
+    'opt-sz1080':  '正方 1080px',
+    'sl-tpl':      'テンプレート（ブラウザ保存）',
+    'ph-tplname':  'テンプレート名', 'btn-savetpl': '保存',
+    'btn-expjson': 'JSONエクスポート', 'btn-impjson': 'JSONインポート',
+    'btn-exppng':  'PNG出力',
+    'cv-client':   '依頼者',
+    'cv-commtype': '依頼内容',
+    'cv-refsheet': '依頼資料',
+    'cv-charref':  'CHARACTER REFERENCE',
+    'cv-birthday': '誕生日', 'cv-age': '年齢', 'cv-height': '身長',
+    'cv-weight':   '体重',   'cv-hair': '髪色', 'cv-eye': '瞳色',
+    'cv-gender':   '性別',   'cv-body': '体型', 'cv-skin': '肌色',
+    'cv-persona':  '性格', 'cv-bgsetting': '背景設定', 'cv-chartags': '特徴タグ',
+    'cv-commreq':  '依頼内容',
+    'cv-noncom':   '非商業',   'cv-com': '商業利用',
+    'cv-usage':    '用途',
+    'cv-ok':       'OK',       'cv-ng': 'NG',
+    'cv-notes':    '依頼詳細',
+    'cv-refimgs':  '参考画像',
+    'cv-footer':   'Commission Reference Sheet',
+    'cv-front':    '正面',     'cv-back': '背面',
+    'cv-chara-ph': '設定画',
+    'msg-saving':  '生成中…',  'msg-tplsaved': '保存しました：',
+    'msg-notplname':'テンプレート名を入力してください', 'msg-badJSON': 'JSON形式エラー',
+    'tpl-empty':   'テンプレートなし',
+  },
+  en: {
+    'ui-title':       'Commission Reference Tool',
+    'ui-subtitle':    'Fill in → Preview → Export PNG',
+    'lbl-zoom':       'Zoom',
+    'lbl-hint-right': 'Canvas render · Local images supported',
+    'tab-chara': 'Character', 'tab-comm': 'Commission', 'tab-imgs': 'Images', 'tab-style': 'Style',
+    'sl-basic':    'Basic Info',
+    'lbl-cname':   'Character Name', 'ph-cname':   'Character Name',
+    'lbl-gender':  'Gender',         'ph-gender':  'Female',
+    'lbl-bday':    'Birthday',        'ph-bday':    'MM/DD',
+    'lbl-age':     'Age',             'ph-age':     '19',
+    'lbl-height':  'Height',          'ph-height':  '168cm',
+    'lbl-weight':  'Weight',          'ph-weight':  '54kg',
+    'lbl-body':    'Body Type',       'ph-body':    'Slim',
+    'lbl-hair':    'Hair Color',      'ph-hair':    'Silver',
+    'lbl-eye':     'Eye Color',       'ph-eye':     'Purple',
+    'lbl-skin':    'Skin Tone',       'ph-skin':    'Fair',
+    'sl-persona':  'Personality & Lore',
+    'lbl-pers':    'Personality',     'ph-pers':    'Calm on the surface, passionate within...',
+    'lbl-bg':      'Background',      'ph-bg':      'World setting, backstory...',
+    'sl-chartags': 'Traits (press Enter to add)', 'ph-chartags': 'e.g. Cat ears',
+    'sl-commreq':  'Commission Details',
+    'lbl-cmtype':  'Type',            'ph-cmtype':  'Bust-up / Full body / Expression sheet',
+    'lbl-cmcom':   'License',
+    'opt-noncom':  'Non-commercial',  'opt-com':    'Commercial use',
+    'lbl-cmplat':  'Purpose',         'ph-cmplat':  'Personal / Wallpaper / Merch / SNS',
+    'lbl-cmnote':  'Description',     'ph-cmnote':  'Scene, description, tags\ne.g. Outdoor café, daytime, relaxed expression, #casual #smile',
+    'sl-ok':       'OK items (press Enter to add)', 'ph-ok': 'e.g. Original background',
+    'sl-ng':       'NG items (press Enter to add)', 'ph-ng': 'e.g. Explicit content',
+    'sl-contact':  'Contact Info',
+    'lbl-ctname':  'Name',            'ph-ctname':  'Client name',
+    'sl-mainimg':  'Main Image (up to 2)',
+    'lbl-main1':   'Main Image 1 (Front / Reference)',
+    'hint-main1':  'Recommended: Portrait 600×900, Square 800×800, Landscape 900×600',
+    'hint-upload': 'Click to upload',
+    'lbl-main2':   'Main Image 2 (Back / Optional)',
+    'hint-main2':  'Best if same ratio as Image 1',
+    'hint-upload2':'Click to upload (optional)',
+    'sl-smallimg': 'Sub Images (expressions/details, up to 6)',
+    'hint-small':  'Recommended: 200×200 (square works best)',
+    'btn-adds':    '+ Add sub image',
+    'sl-refimg':   'Reference Images (up to 4)',
+    'hint-ref':    'Any ratio, 800px+ width recommended',
+    'btn-addr':    '+ Add reference',
+    'sl-theme':    'Theme Colors',
+    'lbl-cola':    'Accent',     'lbl-colb': 'Secondary',
+    'sl-colors':   'Content Colors',
+    'lbl-col-bg':  'Background', 'lbl-col-text':  'Main Text',
+    'lbl-col-label':'Label Text','lbl-col-card':  'Card Background',
+    'sl-colwidth': 'Left Column Width',
+    'hint-colwidth':'Image ratio controls height; slider adjusts left column width',
+    'sl-outsize':  'Output Size',
+    'opt-sz900':   'Standard 900px (recommended)',
+    'opt-sz1200':  'Wide 1200px',
+    'opt-sz1080':  'Square 1080px',
+    'sl-tpl':      'Templates (saved in browser)',
+    'ph-tplname':  'Template name', 'btn-savetpl': 'Save',
+    'btn-expjson': 'Export JSON',   'btn-impjson': 'Import JSON',
+    'btn-exppng':  'Export PNG',
+    'cv-client':   'Client',
+    'cv-commtype': 'Commission Type',
+    'cv-refsheet': 'Commission Sheet',
+    'cv-charref':  'CHARACTER REFERENCE',
+    'cv-birthday': 'Birthday', 'cv-age': 'Age', 'cv-height': 'Height',
+    'cv-weight':   'Weight',   'cv-hair': 'Hair', 'cv-eye': 'Eyes',
+    'cv-gender':   'Gender',   'cv-body': 'Body', 'cv-skin': 'Skin',
+    'cv-persona':  'Personality', 'cv-bgsetting': 'Background', 'cv-chartags': 'Traits',
+    'cv-commreq':  'Commission Details',
+    'cv-noncom':   'Non-commercial', 'cv-com': 'Commercial',
+    'cv-usage':    'Purpose',
+    'cv-ok':       'OK',       'cv-ng': 'NG',
+    'cv-notes':    'Description',
+    'cv-refimgs':  'References',
+    'cv-footer':   'Commission Reference Sheet',
+    'cv-front':    'Front',    'cv-back': 'Back',
+    'cv-chara-ph': 'Character Sheet',
+    'msg-saving':  'Generating…', 'msg-tplsaved': 'Saved: ',
+    'msg-notplname':'Please enter a template name', 'msg-badJSON': 'Invalid JSON format',
+    'tpl-empty':   'No templates saved',
+  },
+  ko: {
+    'ui-title':       '커미션 자료 제작 도구',
+    'ui-subtitle':    '입력 → 실시간 미리보기 → PNG 출력',
+    'lbl-zoom':       '확대',
+    'lbl-hint-right': 'Canvas 렌더링 · 로컬 이미지 지원',
+    'tab-chara': '캐릭터', 'tab-comm': '커미션', 'tab-imgs': '이미지', 'tab-style': '스타일',
+    'sl-basic':    '기본 정보',
+    'lbl-cname':   '캐릭터 이름', 'ph-cname':   '캐릭터 이름',
+    'lbl-gender':  '성별',        'ph-gender':  '여성',
+    'lbl-bday':    '생일',        'ph-bday':    'MM/DD',
+    'lbl-age':     '나이',        'ph-age':     '19세',
+    'lbl-height':  '키',          'ph-height':  '168cm',
+    'lbl-weight':  '몸무게',      'ph-weight':  '54kg',
+    'lbl-body':    '체형',        'ph-body':    '슬림',
+    'lbl-hair':    '머리색',      'ph-hair':    '은백',
+    'lbl-eye':     '눈 색',       'ph-eye':     '보라',
+    'lbl-skin':    '피부색',      'ph-skin':    '흰 피부',
+    'sl-persona':  '성격 및 설정',
+    'lbl-pers':    '성격',        'ph-pers':    '차가운 겉모습 속에 열정을 숨기고...',
+    'lbl-bg':      '배경 설정',   'ph-bg':      '세계관, 스토리 배경...',
+    'sl-chartags': '특징 태그（Enter로 추가）', 'ph-chartags': '예: 고양이 귀',
+    'sl-commreq':  '커미션 내용',
+    'lbl-cmtype':  '의뢰 종류',   'ph-cmtype':  '반신 컬러 / 전신 / 표정집',
+    'lbl-cmcom':   '사용 허가',
+    'opt-noncom':  '비상업',      'opt-com':    '상업 이용',
+    'lbl-cmplat':  '용도',        'ph-cmplat':  '개인 사용 / 배경화면 / 굿즈 / SNS',
+    'lbl-cmnote':  '요청 내용',   'ph-cmnote':  '상황, 설명, 태그\n예: 야외 카페, 낮, 편안한 표정, #casual #smile',
+    'sl-ok':       'OK 항목（Enter로 추가）', 'ph-ok': '예: 오리지널 배경',
+    'sl-ng':       'NG 항목（Enter로 추가）', 'ph-ng': '예: 과격한 표현',
+    'sl-contact':  '연락처',
+    'lbl-ctname':  '이름',        'ph-ctname':  '의뢰인 이름',
+    'sl-mainimg':  '메인 이미지（최대 2장）',
+    'lbl-main1':   '메인 이미지 1（앞면 / 설정화）',
+    'hint-main1':  '권장 크기: 세로 600×900, 정사각 800×800, 가로 900×600',
+    'hint-upload': '클릭하여 업로드',
+    'lbl-main2':   '메인 이미지 2（뒷면 / 선택）',
+    'hint-main2':  '메인 이미지 1과 같은 비율이 최적',
+    'hint-upload2':'클릭하여 업로드（선택 사항）',
+    'sl-smallimg': '서브 이미지（표정집·특징, 최대 6장）',
+    'hint-small':  '권장 크기: 200×200（정사각형 권장）',
+    'btn-adds':    '+ 서브 이미지 추가',
+    'sl-refimg':   '참고 이미지（최대 4장）',
+    'hint-ref':    '비율 자유, 가로 800px 이상 권장',
+    'btn-addr':    '+ 참고 이미지 추가',
+    'sl-theme':    '테마 색상',
+    'lbl-cola':    '포인트 색',   'lbl-colb': '보조 색',
+    'sl-colors':   '콘텐츠 색상',
+    'lbl-col-bg':  '배경색',      'lbl-col-text':  '본문 텍스트',
+    'lbl-col-label':'라벨 텍스트','lbl-col-card':  '카드 배경',
+    'sl-colwidth': '왼쪽 열 너비',
+    'hint-colwidth':'이미지 비율이 높이를 자동 결정, 슬라이더로 왼쪽 열 너비 조정',
+    'sl-outsize':  '출력 크기',
+    'opt-sz900':   '표준 900px（권장）',
+    'opt-sz1200':  '와이드 1200px',
+    'opt-sz1080':  '정사각 1080px',
+    'sl-tpl':      '템플릿（브라우저 저장）',
+    'ph-tplname':  '템플릿 이름', 'btn-savetpl': '저장',
+    'btn-expjson': 'JSON 내보내기', 'btn-impjson': 'JSON 가져오기',
+    'btn-exppng':  'PNG 출력',
+    'cv-client':   '의뢰인',
+    'cv-commtype': '커미션 종류',
+    'cv-refsheet': '커미션 자료',
+    'cv-charref':  'CHARACTER REFERENCE',
+    'cv-birthday': '생일',   'cv-age': '나이', 'cv-height': '키',
+    'cv-weight':   '몸무게', 'cv-hair': '머리색', 'cv-eye': '눈 색',
+    'cv-gender':   '성별',   'cv-body': '체형',   'cv-skin': '피부색',
+    'cv-persona':  '성격', 'cv-bgsetting': '배경 설정', 'cv-chartags': '특징 태그',
+    'cv-commreq':  '커미션 내용',
+    'cv-noncom':   '비상업',  'cv-com': '상업 이용',
+    'cv-usage':    '용도',
+    'cv-ok':       'OK',      'cv-ng': 'NG',
+    'cv-notes':    '요청 내용',
+    'cv-refimgs':  '참고 이미지',
+    'cv-footer':   'Commission Reference Sheet',
+    'cv-front':    '앞면',    'cv-back': '뒷면',
+    'cv-chara-ph': '설정화',
+    'msg-saving':  '생성 중…', 'msg-tplsaved': '저장됨: ',
+    'msg-notplname':'템플릿 이름을 입력하세요', 'msg-badJSON': 'JSON 형식 오류',
+    'tpl-empty':   '저장된 템플릿 없음',
+  }
+};
+
+var currentLang = 'zh';
+
+function t(key) {
+  return (LANGS[currentLang] && LANGS[currentLang][key]) || (LANGS['zh'][key]) || key;
+}
+
+// IDs that map to textContent
+var TEXT_IDS = [
+  'ui-title','ui-subtitle','lbl-zoom','lbl-hint-right',
+  'tab-chara','tab-comm','tab-imgs','tab-style',
+  'sl-basic',
+  'lbl-cname','lbl-gender','lbl-bday','lbl-age','lbl-height','lbl-weight','lbl-body','lbl-hair','lbl-eye','lbl-skin',
+  'sl-persona','lbl-pers','lbl-bg',
+  'sl-chartags',
+  'sl-commreq','lbl-cmtype','lbl-cmcom','opt-noncom','opt-com',
+  'lbl-cmplat','lbl-cmnote',
+  'sl-ok','sl-ng','sl-contact','lbl-ctname',
+  'sl-mainimg','lbl-main1','hint-main1','hint-upload','lbl-main2','hint-main2','hint-upload2',
+  'sl-smallimg','hint-small',
+  'sl-refimg','hint-ref',
+  'sl-theme','lbl-cola','lbl-colb',
+  'sl-colors','lbl-col-bg','lbl-col-text','lbl-col-label','lbl-col-card',
+  'sl-colwidth','hint-colwidth',
+  'sl-outsize','opt-sz900','opt-sz1200','opt-sz1080',
+  'sl-tpl','btn-savetpl',
+  'btn-expjson','btn-impjson','btn-exppng',
+];
+
+// IDs that map to placeholder
+var PH_IDS = [
+  ['c-name','ph-cname'],['c-gender','ph-gender'],['c-bday','ph-bday'],['c-age','ph-age'],
+  ['c-h','ph-height'],['c-w','ph-weight'],['c-body','ph-body'],['c-hair','ph-hair'],['c-eye','ph-eye'],['c-skin','ph-skin'],
+  ['c-pers','ph-pers'],['c-bg','ph-bg'],
+  ['ti-chara','ph-chartags'],
+  ['cm-type','ph-cmtype'],['cm-plat','ph-cmplat'],['cm-note','ph-cmnote'],
+  ['ti-ok','ph-ok'],['ti-ng','ph-ng'],
+  ['ct-name','ph-ctname'],
+  ['tpl-n','ph-tplname'],
+];
+
+function applyLang() {
+  TEXT_IDS.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = t(id);
+  });
+  PH_IDS.forEach(function(pair) {
+    var el = document.getElementById(pair[0]);
+    if (el) el.placeholder = t(pair[1]);
+  });
+  // add-s / add-r buttons
+  var as = document.getElementById('add-s');
+  var ar = document.getElementById('add-r');
+  if (as) as.textContent = t('btn-adds');
+  if (ar) ar.textContent = t('btn-addr');
+  // update tpl-list empty message
+  renderTpls();
+  draw();
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lbtn').forEach(function(b) {
+    b.classList.toggle('active', b.textContent.trim() === {zh:'繁中',ja:'日本語',en:'EN',ko:'한국어'}[lang]);
+  });
+  applyLang();
+}
+
+// ── Core state ─────────────────────────────────────────────
 var T={chara:[],ok:[],ng:[]};
 var IMGS={main:null,main2:null,small:[],ref:[]};
 var imgTarget=null;
 var smallN=0,refN=0;
+var currentLicense='noncom';
 var canvas=document.getElementById('cv');
 var ctx=canvas.getContext('2d');
 
@@ -184,9 +665,16 @@ function v(id){var el=g(id);return el?el.value:''}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function setMsg(m){g('smsg').textContent=m}
 
+function setLicense(val){
+  currentLicense=val;
+  g('radio-noncom').classList.toggle('selected',val==='noncom');
+  g('radio-com').classList.toggle('selected',val==='com');
+  draw();
+}
+
 function sw(id){
   var ids=['chara','comm','imgs','style'];
-  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',ids[i]===id)});
+  document.querySelectorAll('.tab').forEach(function(tab,i){tab.classList.toggle('active',ids[i]===id)});
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
   g('panel-'+id).classList.add('active');
 }
@@ -202,8 +690,8 @@ function addTag(k,e){
 function removeTag(k,i){T[k].splice(i,1);renderTagUI(k);draw()}
 function renderTagUI(k){
   var cls=k==='ng'?'ng':k==='ok'?'ok':'c';
-  g('tags-'+k).innerHTML=T[k].map(function(t,i){
-    return '<span class="tg '+cls+'">'+esc(t)+'<span class="x" onclick="removeTag(\''+k+'\','+i+')">✕</span></span>';
+  g('tags-'+k).innerHTML=T[k].map(function(tag,i){
+    return '<span class="tg '+cls+'">'+esc(tag)+'<span class="x" onclick="removeTag(\''+k+'\','+i+')">✕</span></span>';
   }).join('');
 }
 
@@ -217,8 +705,8 @@ function addSlot(type){
   var grid=g(type==='small'?'sg':'rg');
   var d=document.createElement('div');
   d.className='iu sq';d.id=type+'-'+idx;
-  d.innerHTML='<div class="ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>上傳</span></div>';
-  (function(t,i){d.onclick=function(){imgTarget={type:t,idx:i};g('ii').click()}})(type,idx);
+  d.innerHTML='<div class="ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>'+t('hint-upload')+'</span></div>';
+  (function(tp,i){d.onclick=function(){imgTarget={type:tp,idx:i};g('ii').click()}})(type,idx);
   grid.appendChild(d);
   if(type==='small'&&smallN>=6)g('add-s').style.display='none';
   if(type==='ref'&&refN>=4)g('add-r').style.display='none';
@@ -236,9 +724,9 @@ function loadImgFile(input){
         var el=document.createElement('img');el.src=e.target.result;box.appendChild(el);
         box.querySelector('.ph').style.display='none';
       } else {
-        var t=imgTarget.type,i=imgTarget.idx;
-        IMGS[t][i]=im;
-        var slot=g(t+'-'+i);
+        var tp=imgTarget.type,i=imgTarget.idx;
+        IMGS[tp][i]=im;
+        var slot=g(tp+'-'+i);
         var ex2=slot.querySelector('img');if(ex2)ex2.remove();
         var el2=document.createElement('img');el2.src=e.target.result;slot.appendChild(el2);
         slot.querySelector('.ph').style.display='none';
@@ -305,7 +793,17 @@ function tagRow(c,items,x,y,maxX,lh,fillColor,strokeColor,textColor){
 
 function getStats(){
   var s=[];
-  var pairs=[['c-bday','生日'],['c-age','年齡'],['c-h','身高'],['c-w','體重'],['c-hair','髮色'],['c-eye','瞳色']];
+  var pairs=[
+    ['c-gender',t('cv-gender')],
+    ['c-bday',  t('cv-birthday')],
+    ['c-age',   t('cv-age')],
+    ['c-h',     t('cv-height')],
+    ['c-w',     t('cv-weight')],
+    ['c-body',  t('cv-body')],
+    ['c-hair',  t('cv-hair')],
+    ['c-eye',   t('cv-eye')],
+    ['c-skin',  t('cv-skin')]
+  ];
   pairs.forEach(function(p){if(v(p[0]))s.push({k:p[1],v:v(p[0])})});
   return s;
 }
@@ -314,31 +812,31 @@ function draw(){
   var W=parseInt(v('sz'))||900;
   var ac=v('col-a')||'#C084B0';
   var ac2=v('col-b')||'#8B5CF6';
+  var cBg=v('col-bg')||'#f7f4f9';
+  var cText=v('col-text')||'#1a1a2e';
+  var cLabel=v('col-label')||'#8888aa';
+  var cCard=v('col-card')||'#ede5f4';
   var PAD=32,HDRH=90;
   var colPct=(parseInt(v('col-pct'))||35)/100;
   var layout=v('main-layout')||'side';
   var hasMain2=!!IMGS.main2;
 
-  // --- compute left column width & main image block height ---
   var leftW, mainBlockH;
   if(!hasMain2){
-    // single image: leftW from slider, height from actual ratio
     leftW=Math.round((W-PAD*2)*colPct);
     if(IMGS.main){
       var sc=Math.min(leftW/IMGS.main.width,1);
       mainBlockH=Math.round(IMGS.main.height*sc);
     } else {
-      mainBlockH=Math.round(leftW*(4/3)); // placeholder default
+      mainBlockH=Math.round(leftW*(4/3));
     }
   } else if(layout==='side'){
-    // two images side by side inside left column
     leftW=Math.round((W-PAD*2)*colPct);
     var halfW=Math.floor((leftW-6)/2);
     var h1=IMGS.main  ? Math.round(halfW/IMGS.main.width *IMGS.main.height ) : Math.round(halfW*1.3);
     var h2=IMGS.main2 ? Math.round(halfW/IMGS.main2.width*IMGS.main2.height) : Math.round(halfW*1.3);
     mainBlockH=Math.max(h1,h2);
   } else {
-    // stack: two images top/bottom, each spans full leftW
     leftW=Math.round((W-PAD*2)*colPct);
     var h1s=IMGS.main  ? Math.round(leftW/IMGS.main.width *IMGS.main.height ) : Math.round(leftW*1.3);
     var h2s=IMGS.main2 ? Math.round(leftW/IMGS.main2.width*IMGS.main2.height) : Math.round(leftW*1.3);
@@ -348,21 +846,19 @@ function draw(){
   var RX=PAD+leftW+20,RW=W-RX-PAD;
   var stats=getStats();
 
-  // measure right column height
   var tmpC=document.createElement('canvas').getContext('2d');
   var ry=0;
-  ry+=50; // name + subtitle
-  if(stats.length)ry+=Math.ceil(stats.length/2)*34+10;
+  ry+=50; // name block
+  if(T.chara.length)ry+=36+Math.ceil(T.chara.length/4)*24+14; // tags right after name
+  if(stats.length)ry+=Math.ceil(stats.length/3)*52+10;
   var pers=v('c-pers'),bg=v('c-bg');
-  if(pers){tmpC.font="400 12px sans-serif";var pl=0;pers.split('').forEach(function(c){if(c==='\n'){pl++}else{var t=tmpC.measureText(c);if(t)pl++}});ry+=18+Math.min(6,Math.ceil(wrapT(tmpC,pers,0,0,RW,18,6)/18))*18+10}
-  if(bg)ry+=18+60+10;
-  if(T.chara.length)ry+=18+Math.ceil(T.chara.length/4)*22+10;
+  if(pers)ry+=36+Math.min(6,Math.ceil(pers.length/20)+1)*20+14;
+  if(bg)ry+=36+Math.min(6,Math.ceil(bg.length/20)+1)*20+14;
 
   var leftH=mainBlockH+(smallN>0?8+Math.ceil(smallN/3)*(Math.round(leftW/3)+5)+5:0);
   var bodyH=Math.max(leftH,ry)+20;
 
-  // commission section height estimate (two-col layout)
-  var CH=30+30; // divider + title row + badge row
+  var CH=30+30+32; // title + badge row + padding
   var leftCWe=Math.round((W-PAD*2-20)*0.4);
   var rightCWe=W-PAD*2-20-leftCWe;
   var lhe=0,rhe=0;
@@ -376,20 +872,19 @@ function draw(){
   if(refImgs.length){
     var mcw=Math.floor((W-PAD*2-(refImgs.length-1)*10)/refImgs.length);
     var tallRef=0;
-    refImgs.forEach(function(im){var sc=Math.min(mcw/im.width,1);var dh=Math.round(im.height*sc);if(dh>tallRef)tallRef=dh;});
+    refImgs.forEach(function(im){var sc2=Math.min(mcw/im.width,1);var dh=Math.round(im.height*sc2);if(dh>tallRef)tallRef=dh;});
     CH+=20+tallRef+16;
   }
 
   var FOOTER=48;
   var H=HDRH+20+bodyH+24+CH+FOOTER+16;
 
-  // setup
   canvas.width=W*2;canvas.height=H*2;
   canvas.style.width=W+'px';canvas.style.height=H+'px';
   ctx.setTransform(2,0,0,2,0,0);
 
   // BG
-  ctx.fillStyle='#f7f4f9';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=cBg;ctx.fillRect(0,0,W,H);
   var g1=ctx.createRadialGradient(W*.95,H*.05,0,W*.95,H*.05,W*.5);
   g1.addColorStop(0,hex2rgba(ac2,.07));g1.addColorStop(1,'transparent');
   ctx.fillStyle=g1;ctx.fillRect(0,0,W,H);
@@ -401,47 +896,45 @@ function draw(){
   var lg=ctx.createLinearGradient(0,0,W,0);
   lg.addColorStop(0,ac);lg.addColorStop(.5,ac2);lg.addColorStop(1,ac);
   ctx.fillStyle=lg;ctx.fillRect(0,HDRH-3,W,3);
-  // HEADER left: 委託人資料
+
   var ctName=v('ct-name'),ctTw=v('ct-tw');
   ctx.fillStyle='rgba(255,255,255,.45)';
   ctx.font="400 10px 'Noto Sans TC',sans-serif";
-  ctx.fillText('委託人',PAD,HDRH/2-4);
+  ctx.fillText(t('cv-client'),PAD,HDRH/2-4);
   ctx.fillStyle='#fff';
   ctx.font="700 20px 'Noto Serif TC',serif";
-  ctx.fillText(ctName||'（委託人名稱）',PAD,HDRH/2+14);
+  ctx.fillText(ctName||(t('ph-ctname')),PAD,HDRH/2+14);
   if(ctTw){
     ctx.fillStyle='rgba(255,255,255,.55)';
     ctx.font="400 11px 'Noto Sans TC',sans-serif";
     ctx.fillText(ctTw,PAD,HDRH/2+28);
   }
-  // header right: 委託項目 (right-aligned, two lines if needed)
   var cmTypeVal=v('cm-type');
   ctx.textAlign='right';
   if(cmTypeVal){
     ctx.fillStyle='rgba(255,255,255,.45)';
     ctx.font="400 10px 'Noto Sans TC',sans-serif";
-    ctx.fillText('委託項目',W-PAD,HDRH/2-2);
+    ctx.fillText(t('cv-commtype'),W-PAD,HDRH/2-2);
     ctx.fillStyle='#fff';
     ctx.font="700 16px 'Noto Serif TC',serif";
     ctx.fillText(cmTypeVal,W-PAD,HDRH/2+16);
   } else {
     ctx.fillStyle='rgba(255,255,255,.25)';
     ctx.font="400 11px 'Noto Sans TC',sans-serif";
-    ctx.fillText('委託資料',W-PAD,HDRH/2+8);
+    ctx.fillText(t('cv-refsheet'),W-PAD,HDRH/2+8);
   }
   ctx.textAlign='left';
 
   // BODY
   var y0=HDRH+20;
 
-  // LEFT: main image(s) — contain scaling, no crop
   function drawContain(im,x,y,boxW,boxH,radius,placeholder){
     rr(ctx,x,y,boxW,boxH,radius);
     if(im){
-      var sc=Math.min(boxW/im.width,boxH/im.height);
-      var dw=Math.round(im.width*sc),dh=Math.round(im.height*sc);
+      var sc3=Math.min(boxW/im.width,boxH/im.height);
+      var dw=Math.round(im.width*sc3),dh=Math.round(im.height*sc3);
       var ox=x+Math.round((boxW-dw)/2),oy=y+Math.round((boxH-dh)/2);
-      ctx.fillStyle='#ede5f4';ctx.fill(); // bg behind letterbox
+      ctx.fillStyle=cCard;ctx.fill();
       ctx.strokeStyle=hex2rgba(ac,.3);ctx.lineWidth=1.2;ctx.stroke();
       ctx.save();rr(ctx,x,y,boxW,boxH,radius);ctx.clip();
       ctx.drawImage(im,ox,oy,dw,dh);
@@ -449,27 +942,27 @@ function draw(){
       ctx.strokeStyle=hex2rgba(ac,.3);ctx.lineWidth=1.2;
       rr(ctx,x,y,boxW,boxH,radius);ctx.stroke();
     } else {
-      ctx.fillStyle='#ede5f4';ctx.fill();
+      ctx.fillStyle=cCard;ctx.fill();
       ctx.strokeStyle=hex2rgba(ac,.2);ctx.lineWidth=1;ctx.stroke();
-      ctx.fillStyle='#c4b0d4';ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.textAlign='center';
-      ctx.fillText(placeholder||'角色設定圖',x+boxW/2,y+boxH/2+4);ctx.textAlign='left';
+      ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.textAlign='center';
+      ctx.fillText(placeholder||t('cv-chara-ph'),x+boxW/2,y+boxH/2+4);ctx.textAlign='left';
     }
   }
 
   if(!hasMain2){
-    drawContain(IMGS.main,PAD,y0,leftW,mainBlockH,7,'角色設定圖');
+    drawContain(IMGS.main,PAD,y0,leftW,mainBlockH,7,t('cv-chara-ph'));
   } else if(layout==='side'){
     var hw=Math.floor((leftW-6)/2);
     var h1d=IMGS.main  ? Math.round(hw/IMGS.main.width *IMGS.main.height ) : Math.round(hw*1.3);
     var h2d=IMGS.main2 ? Math.round(hw/IMGS.main2.width*IMGS.main2.height) : Math.round(hw*1.3);
     var tallH=Math.max(h1d,h2d);
-    drawContain(IMGS.main, PAD,      y0,hw,tallH,7,'正面');
-    drawContain(IMGS.main2,PAD+hw+6, y0,hw,tallH,7,'反面');
+    drawContain(IMGS.main, PAD,      y0,hw,tallH,7,t('cv-front'));
+    drawContain(IMGS.main2,PAD+hw+6, y0,hw,tallH,7,t('cv-back'));
   } else {
     var w1=leftW,h1st=IMGS.main  ? Math.round(w1/IMGS.main.width *IMGS.main.height ) : Math.round(w1*1.3);
     var w2=leftW,h2st=IMGS.main2 ? Math.round(w2/IMGS.main2.width*IMGS.main2.height) : Math.round(w2*1.3);
-    drawContain(IMGS.main, PAD,y0,      w1,h1st,7,'正面');
-    drawContain(IMGS.main2,PAD,y0+h1st+6,w2,h2st,7,'反面');
+    drawContain(IMGS.main, PAD,y0,      w1,h1st,7,t('cv-front'));
+    drawContain(IMGS.main2,PAD,y0+h1st+6,w2,h2st,7,t('cv-back'));
   }
 
   // small images
@@ -491,33 +984,47 @@ function draw(){
   // RIGHT
   var ry2=y0;
 
-  // character name block
   ctx.fillStyle=ac;ctx.fillRect(RX,ry2,3,34);
-  ctx.fillStyle='#1a1a2e';ctx.font="700 22px 'Noto Serif TC',serif";
-  ctx.fillText(v('c-name')||'角色名稱',RX+10,ry2+24);
+  ctx.fillStyle=cText;ctx.font="700 22px 'Noto Serif TC',serif";
+  ctx.fillText(v('c-name')||t('lbl-cname'),RX+10,ry2+24);
   ctx.fillStyle=hex2rgba(ac,.7);ctx.font="400 10px 'Noto Sans TC',sans-serif";
-  ctx.fillText('CHARACTER REFERENCE',RX+10,ry2+36);
+  ctx.fillText(t('cv-charref'),RX+10,ry2+36);
   ry2+=50;
 
-  // stats
+  // 特徵標籤 — 緊接在名字下方
+  if(T.chara.length){
+    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText(t('cv-chartags'),RX,ry2+13);
+    var tlen2=ctx.measureText(t('cv-chartags')).width+10;
+    var tlg3=ctx.createLinearGradient(RX+tlen2,0,RX+RW,0);
+    tlg3.addColorStop(0,hex2rgba(ac,.35));tlg3.addColorStop(1,'transparent');
+    ctx.strokeStyle=tlg3;ctx.lineWidth=.6;
+    ctx.beginPath();ctx.moveTo(RX+tlen2,ry2+8);ctx.lineTo(RX+RW,ry2+8);ctx.stroke();
+    ry2+=36;
+    ry2=tagRow(ctx,T.chara,RX,ry2,RX+RW,24,hex2rgba(ac2,.12),hex2rgba(ac2,.25),'#6d4fc7');
+    ry2+=14;
+  }
+
   if(stats.length){
-    var sCW=Math.floor((RW-8)/2);
+    var COLS=3;
+    var sCW=Math.floor((RW-(COLS-1)*6)/COLS);
     stats.forEach(function(s,i){
-      var scx2=RX+(i%2)*(sCW+8),scy2=ry2+Math.floor(i/2)*34;
-      rr(ctx,scx2,scy2,sCW,28,5);
+      var col=i%COLS, row=Math.floor(i/COLS);
+      var scx2=RX+col*(sCW+6), scy2=ry2+row*52;
+      rr(ctx,scx2,scy2,sCW,46,5);
       ctx.fillStyle=hex2rgba(ac2,.07);ctx.fill();
       ctx.strokeStyle=hex2rgba(ac,.15);ctx.lineWidth=.5;ctx.stroke();
-      ctx.fillStyle='#8888aa';ctx.font="400 10px 'Noto Sans TC',sans-serif";
-      ctx.fillText(s.k,scx2+8,scy2+12);
-      ctx.fillStyle='#1a1a2e';ctx.font="500 12px 'Noto Sans TC',sans-serif";
-      ctx.fillText(s.v,scx2+8,scy2+24);
+      // label: 4px top padding
+      ctx.fillStyle=cLabel;ctx.font="400 14px 'Noto Sans TC',sans-serif";
+      ctx.fillText(s.k,scx2+10,scy2+17);
+      // value: label(14) + 4px gap + value baseline
+      ctx.fillStyle=cText;ctx.font="500 18px 'Noto Sans TC',sans-serif";
+      ctx.fillText(s.v,scx2+10,scy2+39);
     });
-    ry2+=Math.ceil(stats.length/2)*34+10;
+    ry2+=Math.ceil(stats.length/COLS)*52+10;
   }
 
   function drawSec(title,content,maxLines){
     if(!content)return;
-    // section title: 13px, with bottom spacing before content
     ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";
     ctx.fillText(title,RX,ry2+13);
     var tlen=ctx.measureText(title).width+10;
@@ -525,26 +1032,14 @@ function draw(){
     tlg2.addColorStop(0,hex2rgba(ac,.35));tlg2.addColorStop(1,'transparent');
     ctx.strokeStyle=tlg2;ctx.lineWidth=0.6;
     ctx.beginPath();ctx.moveTo(RX+tlen,ry2+8);ctx.lineTo(RX+RW,ry2+8);ctx.stroke();
-    ry2+=36; // gap after title
-    ctx.fillStyle='#2a2a3a';ctx.font="400 13px 'Noto Sans TC',sans-serif";
-    ry2=wrapT(ctx,content,RX,ry2,RW,20,maxLines||7);
-    ry2+=14; // gap after block
-  }
-
-  drawSec('個性',v('c-pers'),5);
-  drawSec('背景設定',v('c-bg'),4);
-
-  if(T.chara.length){
-    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText('特徵標籤',RX,ry2+13);
-    var tlen2=ctx.measureText('特徵標籤').width+10;
-    var tlg3=ctx.createLinearGradient(RX+tlen2,0,RX+RW,0);
-    tlg3.addColorStop(0,hex2rgba(ac,.35));tlg3.addColorStop(1,'transparent');
-    ctx.strokeStyle=tlg3;ctx.lineWidth=.6;
-    ctx.beginPath();ctx.moveTo(RX+tlen2,ry2+8);ctx.lineTo(RX+RW,ry2+8);ctx.stroke();
     ry2+=36;
-    ry2=tagRow(ctx,T.chara,RX,ry2,RX+RW,24,hex2rgba(ac2,.12),hex2rgba(ac2,.25),'#6d4fc7');
-    ry2+=10;
+    ctx.fillStyle=cText;ctx.font="400 13px 'Noto Sans TC',sans-serif";
+    ry2=wrapT(ctx,content,RX,ry2,RW,20,maxLines||6);
+    ry2+=14;
   }
+
+  drawSec(t('cv-persona'),v('c-pers'),6);
+  drawSec(t('cv-bgsetting'),v('c-bg'),6);
 
   // COMMISSION SECTION
   var commY=Math.max(y0+mainBlockH+(smallN>0?8+Math.ceil(smallN/3)*(Math.floor((leftW-10)/3)+5):0),ry2)+20;
@@ -555,65 +1050,62 @@ function draw(){
   ctx.beginPath();ctx.moveTo(PAD,commY);ctx.lineTo(W-PAD,commY);ctx.stroke();
   commY+=16;
 
-  // ── row 1: 委託需求 title + 授權 badge ──
-  ctx.fillStyle='#1a1a2e';ctx.font="700 13px 'Noto Serif TC',serif";
-  ctx.fillText('委託需求',PAD,commY+12);
-  // 授權 badge right-aligned
-  var comVal=v('cm-com')||'非商業';
-  var isComm=comVal.indexOf('商業使用')>=0;
-  var badgeText=isComm?'商業使用':'非商業';
+  ctx.fillStyle=cText;ctx.font="700 13px 'Noto Serif TC',serif";
+  ctx.fillText(t('cv-commreq'),PAD,commY+12);
+  commY+=28;
+
+  // License badge — full-width row, left-aligned
+  var isComm = currentLicense === 'com';
+  var badgeText=isComm?t('cv-com'):t('cv-noncom');
   ctx.font="500 11px 'Noto Sans TC',sans-serif";
-  var bdW=ctx.measureText(badgeText).width+20,bdX=W-PAD-bdW,bdY=commY,bdH=22;
+  var bdW=ctx.measureText(badgeText).width+20,bdX=PAD,bdY=commY,bdH=22;
   rr(ctx,bdX,bdY,bdW,bdH,11);
   ctx.fillStyle=isComm?'rgba(251,191,36,.15)':'rgba(52,211,153,.15)';ctx.fill();
   ctx.strokeStyle=isComm?'rgba(251,191,36,.5)':'rgba(52,211,153,.5)';ctx.lineWidth=.8;ctx.stroke();
   ctx.fillStyle=isComm?'#d97706':'#059669';
   ctx.textAlign='center';ctx.fillText(badgeText,bdX+bdW/2,bdY+bdH/2+4);ctx.textAlign='left';
-  commY+=30;
+  commY+=32;
 
-  // ── two-column body: LEFT=用途+OK+NG  RIGHT=需求描述 ──
   var colGap=20;
   var leftCW=Math.round((W-PAD*2-colGap)*0.4);
   var rightCW=W-PAD*2-colGap-leftCW;
   var LX=PAD, RX2=PAD+leftCW+colGap;
   var colStartY=commY;
 
-  // LEFT col
   var ly=colStartY;
   var platVal=v('cm-plat');
   if(platVal){
     ctx.fillStyle=hex2rgba(ac,.85);ctx.font="500 13px 'Noto Sans TC',sans-serif";
-    ctx.fillText('用途',LX,ly+13);
+    ctx.fillText(t('cv-usage'),LX,ly+13);
     ly+=36;
-    ctx.fillStyle='#2a2a3a';ctx.font="400 13px 'Noto Sans TC',sans-serif";
+    ctx.fillStyle=cText;ctx.font="400 13px 'Noto Sans TC',sans-serif";
     ly=wrapT(ctx,platVal,LX,ly,leftCW,20,3);
     ly+=12;
   }
   if(T.ok.length){
-    ctx.fillStyle='#059669';ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText('OK',LX,ly+13);
+    ctx.fillStyle='#059669';ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText(t('cv-ok'),LX,ly+13);
     ly+=36;
     ly=tagRow(ctx,T.ok,LX,ly,LX+leftCW,22,'rgba(52,211,153,.12)','rgba(52,211,153,.35)','#059669');
     ly+=10;
   }
   if(T.ng.length){
-    ctx.fillStyle='#dc2626';ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText('NG',LX,ly+13);
+    ctx.fillStyle='#dc2626';ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText(t('cv-ng'),LX,ly+13);
     ly+=36;
     ly=tagRow(ctx,T.ng,LX,ly,LX+leftCW,22,'rgba(239,68,68,.1)','rgba(239,68,68,.3)','#dc2626');
     ly+=10;
   }
 
-  // RIGHT col: 需求描述
   var rry=colStartY;
   var note2=v('cm-note');
   if(note2){
-    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText('需求描述',RX2,rry+13);
-    var nlen=ctx.measureText('需求描述').width+10;
+    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText(t('cv-notes'),RX2,rry+13);
+    var nlen=ctx.measureText(t('cv-notes')).width+10;
     var nlg=ctx.createLinearGradient(RX2+nlen,0,RX2+rightCW,0);
     nlg.addColorStop(0,hex2rgba(ac,.35));nlg.addColorStop(1,'transparent');
     ctx.strokeStyle=nlg;ctx.lineWidth=.6;
     ctx.beginPath();ctx.moveTo(RX2+nlen,rry+8);ctx.lineTo(RX2+rightCW,rry+8);ctx.stroke();
     rry+=36;
-    ctx.fillStyle='#2a2a3a';ctx.font="400 13px 'Noto Sans TC',sans-serif";
+    ctx.fillStyle=cText;ctx.font="400 13px 'Noto Sans TC',sans-serif";
     rry=wrapT(ctx,note2,RX2,rry,rightCW,20,12);
     rry+=10;
   }
@@ -623,8 +1115,8 @@ function draw(){
   var rImgs=IMGS.ref.filter(Boolean);
   if(rImgs.length){
     commY+=8;
-    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText('參考圖',PAD,commY+13);
-    var rlen=ctx.measureText('參考圖').width+10;
+    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText(t('cv-refimgs'),PAD,commY+13);
+    var rlen=ctx.measureText(t('cv-refimgs')).width+10;
     var rlg=ctx.createLinearGradient(PAD+rlen,0,W-PAD,0);
     rlg.addColorStop(0,hex2rgba(ac,.35));rlg.addColorStop(1,'transparent');
     ctx.strokeStyle=rlg;ctx.lineWidth=.6;
@@ -633,24 +1125,20 @@ function draw(){
     var maxRefW=W-PAD*2;
     var maxCellW=Math.floor((maxRefW-(rImgs.length-1)*10)/rImgs.length);
     var tallest=0;
-    // first pass: compute each cell's displayed height (contain, no crop)
     var cellDims=rImgs.map(function(im){
-      var scale=Math.min(maxCellW/im.width,1); // never upscale
+      var scale=Math.min(maxCellW/im.width,1);
       var dw=Math.round(im.width*scale);
       var dh=Math.round(im.height*scale);
       if(tallest<dh)tallest=dh;
       return{dw:dw,dh:dh};
     });
-    // draw each
     rImgs.forEach(function(im,i){
       var d=cellDims[i];
       var cx2=PAD+i*(maxCellW+10);
       var cellH=d.dh;
-      // bg card
       rr(ctx,cx2,commY,maxCellW,cellH,5);
       ctx.fillStyle='#f0ebf7';ctx.fill();
       ctx.strokeStyle=hex2rgba(ac,.2);ctx.lineWidth=.8;ctx.stroke();
-      // center horizontally inside maxCellW
       var ox=cx2+Math.round((maxCellW-d.dw)/2);
       ctx.save();rr(ctx,cx2,commY,maxCellW,cellH,5);ctx.clip();
       ctx.drawImage(im,ox,commY,d.dw,d.dh);
@@ -672,7 +1160,7 @@ function draw(){
     ctx.fillText(cth,PAD+(cn?ctx.measureText(cn).width+4:0),footY+20);
   }
   ctx.fillStyle='rgba(255,255,255,.2)';ctx.font="400 10px 'Noto Sans TC',sans-serif";
-  ctx.textAlign='right';ctx.fillText('Commission Reference Sheet',W-PAD,footY+20);ctx.textAlign='left';
+  ctx.textAlign='right';ctx.fillText(t('cv-footer'),W-PAD,footY+20);ctx.textAlign='left';
 }
 
 function setZoom(val){
@@ -681,7 +1169,7 @@ function setZoom(val){
   g('tw2').style.transformOrigin='top center';
 }
 function exportPNG(){
-  setMsg('生成中…');
+  setMsg(t('msg-saving'));
   setTimeout(function(){
     try{
       var a=document.createElement('a');
@@ -692,19 +1180,27 @@ function exportPNG(){
   },50);
 }
 function getState(){
-  return{fields:{name:v('c-name'),bday:v('c-bday'),age:v('c-age'),h:v('c-h'),w:v('c-w'),hair:v('c-hair'),eye:v('c-eye'),pers:v('c-pers'),bg:v('c-bg'),cmType:v('cm-type'),cmCom:v('cm-com'),cmPlat:v('cm-plat'),cmNote:v('cm-note'),ctName:v('ct-name'),ctTw:v('ct-tw')},tags:JSON.parse(JSON.stringify(T)),ac:v('col-a'),ac2:v('col-b'),sz:v('sz'),colPct:v('col-pct'),mainLayout:v('main-layout')};
+  return{
+    fields:{name:v('c-name'),gender:v('c-gender'),bday:v('c-bday'),age:v('c-age'),h:v('c-h'),w:v('c-w'),body:v('c-body'),hair:v('c-hair'),eye:v('c-eye'),skin:v('c-skin'),pers:v('c-pers'),bg:v('c-bg'),cmType:v('cm-type'),cmPlat:v('cm-plat'),cmNote:v('cm-note'),ctName:v('ct-name'),ctTw:v('ct-tw')},
+    tags:JSON.parse(JSON.stringify(T)),
+    license:currentLicense,
+    ac:v('col-a'),ac2:v('col-b'),sz:v('sz'),colPct:v('col-pct'),mainLayout:v('main-layout'),
+    lang:currentLang
+  };
 }
 function applyState(s){
   var f=s.fields||{};
-  var m={'c-name':'name','c-bday':'bday','c-age':'age','c-h':'h','c-w':'w','c-hair':'hair','c-eye':'eye','c-pers':'pers','c-bg':'bg','cm-type':'cmType','cm-com':'cmCom','cm-plat':'cmPlat','cm-note':'cmNote','ct-name':'ctName','ct-tw':'ctTw'};
+  var m={'c-name':'name','c-gender':'gender','c-bday':'bday','c-age':'age','c-h':'h','c-w':'w','c-body':'body','c-hair':'hair','c-eye':'eye','c-skin':'skin','c-pers':'pers','c-bg':'bg','cm-type':'cmType','cm-plat':'cmPlat','cm-note':'cmNote','ct-name':'ctName','ct-tw':'ctTw'};
   Object.keys(m).forEach(function(id){if(g(id)&&f[m[id]]!=null)g(id).value=f[m[id]]});
   T=s.tags||{chara:[],ok:[],ng:[]};
   ['chara','ok','ng'].forEach(renderTagUI);
+  if(s.license)setLicense(s.license);
   if(s.ac)g('col-a').value=s.ac;
   if(s.ac2)g('col-b').value=s.ac2;
   if(s.sz)g('sz').value=s.sz;
   if(s.colPct){g('col-pct').value=s.colPct;g('col-pct-lbl').textContent=s.colPct+'%';}
   if(s.mainLayout)g('main-layout').value=s.mainLayout;
+  if(s.lang)setLang(s.lang);
   draw();
 }
 function exportJSON(){
@@ -714,19 +1210,19 @@ function exportJSON(){
 function importJSON(input){
   var f=input.files[0];if(!f)return;
   var r=new FileReader();
-  r.onload=function(e){try{applyState(JSON.parse(e.target.result))}catch(ex){setMsg('JSON 格式有誤')}input.value=''};
+  r.onload=function(e){try{applyState(JSON.parse(e.target.result))}catch(ex){setMsg(t('msg-badJSON'))}input.value=''};
   r.readAsText(f);
 }
 function saveTpl(){
-  var nm=v('tpl-n').trim();if(!nm){setMsg('請輸入模板名稱');return}
+  var nm=v('tpl-n').trim();if(!nm){setMsg(t('msg-notplname'));return}
   var tpls=JSON.parse(localStorage.getItem('ctpls')||'{}');
   tpls[nm]=getState();localStorage.setItem('ctpls',JSON.stringify(tpls));
-  g('tpl-n').value='';setMsg('已儲存：'+nm);renderTpls();
+  g('tpl-n').value='';setMsg(t('msg-tplsaved')+nm);renderTpls();
 }
 function renderTpls(){
   var tpls=JSON.parse(localStorage.getItem('ctpls')||'{}'),keys=Object.keys(tpls);
   var el=g('tpl-list');
-  if(!keys.length){el.innerHTML='<div style="font-size:10px;color:var(--muted)">尚無模板</div>';return}
+  if(!keys.length){el.innerHTML='<div style="font-size:10px;color:var(--muted)">'+t('tpl-empty')+'</div>';return}
   el.innerHTML=keys.map(function(k){
     return '<div style="display:flex;gap:5px"><button class="btn" style="flex:1;text-align:left;font-size:11px" onclick="loadTpl(\''+k.replace(/'/g,"\\'")+'\')">'+ esc(k) +'</button><button class="btn" style="padding:5px 8px;font-size:10px;color:#f87171" onclick="delTpl(\''+k.replace(/'/g,"\\'")+'\')">✕</button></div>';
   }).join('');
@@ -734,7 +1230,10 @@ function renderTpls(){
 function loadTpl(k){var tpls=JSON.parse(localStorage.getItem('ctpls')||'{}');if(tpls[k])applyState(tpls[k])}
 function delTpl(k){var tpls=JSON.parse(localStorage.getItem('ctpls')||'{}');delete tpls[k];localStorage.setItem('ctpls',JSON.stringify(tpls));renderTpls()}
 
-draw();setZoom(65);renderTpls();
+// Init
+applyLang();
+setZoom(65);
+renderTpls();
 </script>
 </body>
 </html>
