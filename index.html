@@ -55,7 +55,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .iu img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
 .iu .ph{display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
 .iu .ph span{font-size:10px;color:var(--muted)}
-.ig3{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.ref-slot-wrap{display:flex;flex-direction:column;gap:4px}
+.ref-caption{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:11px;padding:4px 7px;outline:none;resize:none;height:38px;transition:border-color .15s}
+.ref-caption:focus{border-color:var(--accent)}
 .ig2{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
 #actions{padding:10px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
 .btn{width:100%;padding:7px 10px;border-radius:6px;font-size:12px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:1px solid var(--border);background:var(--input-bg);color:var(--text);transition:all .15s}
@@ -166,6 +168,7 @@ canvas#cv{display:block;border-radius:4px;box-shadow:0 4px 32px rgba(0,0,0,.5)}
           <div class="iu main-slot" id="main-up" onclick="pickImg('main')">
             <div class="ph"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span id="hint-upload"></span></div>
           </div>
+          <textarea class="ref-caption" id="main-cap" placeholder="" style="display:none;margin-top:4px" maxlength="50" oninput="IMGS.mainCaption=this.value.slice(0,50);draw()"></textarea>
         </div>
         <div class="field">
           <label id="lbl-main2" style="margin-bottom:5px;display:block"></label>
@@ -173,21 +176,68 @@ canvas#cv{display:block;border-radius:4px;box-shadow:0 4px 32px rgba(0,0,0,.5)}
           <div class="iu main-slot" id="main2-up" onclick="pickImg('main2')">
             <div class="ph"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span id="hint-upload2"></span></div>
           </div>
+          <textarea class="ref-caption" id="main2-cap" placeholder="" style="display:none;margin-top:4px" maxlength="50" oninput="IMGS.main2Caption=this.value.slice(0,50);draw()"></textarea>
         </div>
         <input type="hidden" id="main-layout" value="stack">
       </div>
       <div class="sec"><div class="sl" id="sl-smallimg"></div>
         <div style="font-size:10px;color:var(--muted);margin-bottom:6px" id="hint-small"></div>
+        <div class="field">
+          <label id="lbl-smallpos"></label>
+          <div class="radio-row">
+            <label class="radio-opt selected" id="radio-small-main" onclick="setSmallPos('below-main')">
+              <input type="radio" name="small-pos" value="below-main" checked>
+              <span class="radio-dot"></span>
+              <span id="opt-small-main"></span>
+            </label>
+            <label class="radio-opt" id="radio-small-tags" onclick="setSmallPos('below-tags')">
+              <input type="radio" name="small-pos" value="below-tags">
+              <span class="radio-dot"></span>
+              <span id="opt-small-tags"></span>
+            </label>
+          </div>
+        </div>
         <div class="ig3" id="sg"></div>
         <button class="btn" style="margin-top:7px;font-size:11px" id="add-s" onclick="addSlot('small')" id="btn-adds"></button>
       </div>
       <div class="sec"><div class="sl" id="sl-refimg"></div>
         <div style="font-size:10px;color:var(--muted);margin-bottom:6px" id="hint-ref"></div>
+        <div class="field">
+          <label id="lbl-reflayout"></label>
+          <div class="radio-row">
+            <label class="radio-opt selected" id="radio-ref-orig" onclick="setRefLayout('orig')">
+              <input type="radio" name="ref-layout" value="orig" checked>
+              <span class="radio-dot"></span>
+              <span id="opt-ref-orig"></span>
+            </label>
+            <label class="radio-opt" id="radio-ref-grid" onclick="setRefLayout('grid')">
+              <input type="radio" name="ref-layout" value="grid">
+              <span class="radio-dot"></span>
+              <span id="opt-ref-grid"></span>
+            </label>
+          </div>
+        </div>
         <div class="ig2" id="rg"></div>
         <button class="btn" style="margin-top:7px;font-size:11px" id="add-r" onclick="addSlot('ref')" id="btn-addr"></button>
       </div>
     </div>
     <div class="panel" id="panel-style">
+      <div class="sec"><div class="sl" id="sl-bodylayout"></div>
+        <div class="field">
+          <div class="radio-row">
+            <label class="radio-opt selected" id="radio-layout-stack" onclick="setBodyLayout('stack')">
+              <input type="radio" name="body-layout" value="stack" checked>
+              <span class="radio-dot"></span>
+              <span id="opt-layout-stack"></span>
+            </label>
+            <label class="radio-opt" id="radio-layout-side" onclick="setBodyLayout('side')">
+              <input type="radio" name="body-layout" value="side">
+              <span class="radio-dot"></span>
+              <span id="opt-layout-side"></span>
+            </label>
+          </div>
+        </div>
+      </div>
       <div class="sec"><div class="sl" id="sl-theme"></div>
         <div class="field r2">
           <div><label id="lbl-cola"></label><input type="color" id="col-a" value="#C084B0" oninput="draw()"></div>
@@ -204,7 +254,7 @@ canvas#cv{display:block;border-radius:4px;box-shadow:0 4px 32px rgba(0,0,0,.5)}
           <div><label id="lbl-col-card"></label><input type="color" id="col-card" value="#ede5f4" oninput="draw()"></div>
         </div>
       </div>
-      <div class="sec"><div class="sl" id="sl-colwidth"></div>
+      <div class="sec" id="sec-colwidth"><div class="sl" id="sl-colwidth"></div>
         <div class="field" style="display:flex;align-items:center;gap:8px">
           <input type="range" min="20" max="55" value="35" id="col-pct" oninput="draw();g('col-pct-lbl').textContent=this.value+'%'" style="flex:1;accent-color:var(--accent)">
           <span id="col-pct-lbl" style="font-size:11px;color:var(--muted);min-width:32px">35%</span>
@@ -275,8 +325,8 @@ var LANGS = {
     'lbl-eye':     '瞳色',       'ph-eye':     '紫',
     'lbl-skin':    '膚色',       'ph-skin':    '白皙',
     'sl-persona':  '性格與設定',
-    'lbl-pers':    '個性',       'ph-pers':    '冷靜外表下藏著熱情...',
-    'lbl-bg':      '背景設定',   'ph-bg':      '世界觀、故事背景...',
+    'lbl-pers':    '個性（最多6行）',  'ph-pers':    '冷靜外表下藏著熱情...',
+    'lbl-bg':      '背景設定（最多6行）','ph-bg':      '世界觀、故事背景...',
     'sl-chartags': '特徵標籤（Enter 新增）', 'ph-chartags': '例: 貓耳',
     // Comm tab
     'sl-commreq':  '委託需求',
@@ -284,7 +334,7 @@ var LANGS = {
     'lbl-cmcom':   '授權範圍',
     'opt-noncom':  '非商業',     'opt-com':    '商業使用',
     'lbl-cmplat':  '用途',       'ph-cmplat':  '個人使用 / 桌布 / 印製商品 / SNS',
-    'lbl-cmnote':  '需求描述',   'ph-cmnote':  '情境、文字描述、tag\n例：戶外咖啡廳、白天、放鬆的表情、#casual #smile',
+    'lbl-cmnote':  '需求描述（最多12行）','ph-cmnote':  '情境、文字描述、tag\n例：戶外咖啡廳、白天、放鬆的表情、#casual #smile',
     'sl-ok':       'OK 事項（Enter 新增）', 'ph-ok': '例: 原創背景',
     'sl-ng':       'NG 事項（Enter 新增）', 'ph-ng': '例: 過激表現',
     'sl-contact':  '聯絡資訊',
@@ -303,7 +353,16 @@ var LANGS = {
     'sl-refimg':   '參考圖（最多4張）',
     'hint-ref':    '建議尺寸：任意比例皆可，寬度建議 800px 以上',
     'btn-addr':    '+ 新增參考圖',
+    'lbl-reflayout':'排列方式',
+    'opt-ref-orig':'原圖尺寸',  'opt-ref-grid':'縮小兩欄',
+    'ph-refcap':   '說明文字（最多50字）',
+    'ph-smallcap': '說明（最多50字）',
+    'ph-maincap':  '說明（最多50字）',
     // Style tab
+    'sl-bodylayout': '版面排列',
+    'opt-layout-stack': '上下排列', 'opt-layout-side': '左右排列',
+    'lbl-smallpos': '小圖位置',
+    'opt-small-main': '設定圖下方', 'opt-small-tags': '特徵標籤下方',
     'sl-theme':    '主題色',
     'lbl-cola':    '強調色',     'lbl-colb': '輔助色',
     'sl-colors':   '內容顏色',
@@ -360,15 +419,15 @@ var LANGS = {
     'lbl-eye':     '瞳色',       'ph-eye':     '紫',
     'lbl-skin':    '肌色',       'ph-skin':    '白い',
     'sl-persona':  '性格・設定',
-    'lbl-pers':    '性格',       'ph-pers':    '冷静な外見の下に情熱を秘めて...',
-    'lbl-bg':      '背景設定',   'ph-bg':      '世界観・ストーリー背景...',
+    'lbl-pers':    '性格（最大6行）',    'ph-pers':    '冷静な外見の下に情熱を秘めて...',
+    'lbl-bg':      '背景設定（最大6行）', 'ph-bg':      '世界観・ストーリー背景...',
     'sl-chartags': '特徴タグ（Enterで追加）', 'ph-chartags': '例: 猫耳',
     'sl-commreq':  '依頼内容',
     'lbl-cmtype':  '依頼種類',   'ph-cmtype':  '半身カラー / 立ち絵 / 表情集',
     'lbl-cmcom':   '使用許可',
     'opt-noncom':  '非商業',     'opt-com':    '商業利用',
     'lbl-cmplat':  '用途',       'ph-cmplat':  '個人利用 / 壁紙 / グッズ / SNS',
-    'lbl-cmnote':  '依頼詳細',   'ph-cmnote':  'シチュエーション・説明・タグ\n例：カフェ・昼・リラックスした表情・#casual #smile',
+    'lbl-cmnote':  '依頼詳細（最大12行）','ph-cmnote':  'シチュエーション・説明・タグ\n例：カフェ・昼・リラックスした表情・#casual #smile',
     'sl-ok':       'OKな内容（Enterで追加）', 'ph-ok': '例: オリジナル背景',
     'sl-ng':       'NGな内容（Enterで追加）', 'ph-ng': '例: 過激な表現',
     'sl-contact':  '連絡先',
@@ -386,6 +445,15 @@ var LANGS = {
     'sl-refimg':   '参考画像（最大4枚）',
     'hint-ref':    '比率は自由、横幅800px以上推奨',
     'btn-addr':    '+ 参考画像を追加',
+    'lbl-reflayout':'レイアウト',
+    'opt-ref-orig':'原寸サイズ',  'opt-ref-grid':'2列グリッド',
+    'ph-refcap':   '説明（50文字以内）',
+    'ph-smallcap': '説明（50文字以内）',
+    'ph-maincap':  '説明（50文字以内）',
+    'sl-bodylayout': 'レイアウト',
+    'opt-layout-stack': '縦並び', 'opt-layout-side': '横並び',
+    'lbl-smallpos': 'サブ画像の位置',
+    'opt-small-main': '設定画の下', 'opt-small-tags': '特徴タグの下',
     'sl-theme':    'テーマカラー',
     'lbl-cola':    'アクセント',  'lbl-colb': 'サブカラー',
     'sl-colors':   'コンテンツカラー',
@@ -440,15 +508,15 @@ var LANGS = {
     'lbl-eye':     'Eye Color',       'ph-eye':     'Purple',
     'lbl-skin':    'Skin Tone',       'ph-skin':    'Fair',
     'sl-persona':  'Personality & Lore',
-    'lbl-pers':    'Personality',     'ph-pers':    'Calm on the surface, passionate within...',
-    'lbl-bg':      'Background',      'ph-bg':      'World setting, backstory...',
+    'lbl-pers':    'Personality (max 6 lines)',  'ph-pers':    'Calm on the surface, passionate within...',
+    'lbl-bg':      'Background (max 6 lines)',   'ph-bg':      'World setting, backstory...',
     'sl-chartags': 'Traits (press Enter to add)', 'ph-chartags': 'e.g. Cat ears',
     'sl-commreq':  'Commission Details',
     'lbl-cmtype':  'Type',            'ph-cmtype':  'Bust-up / Full body / Expression sheet',
     'lbl-cmcom':   'License',
     'opt-noncom':  'Non-commercial',  'opt-com':    'Commercial use',
     'lbl-cmplat':  'Purpose',         'ph-cmplat':  'Personal / Wallpaper / Merch / SNS',
-    'lbl-cmnote':  'Description',     'ph-cmnote':  'Scene, description, tags\ne.g. Outdoor café, daytime, relaxed expression, #casual #smile',
+    'lbl-cmnote':  'Description (max 12 lines)', 'ph-cmnote':  'Scene, description, tags\ne.g. Outdoor café, daytime, relaxed expression, #casual #smile',
     'sl-ok':       'OK items (press Enter to add)', 'ph-ok': 'e.g. Original background',
     'sl-ng':       'NG items (press Enter to add)', 'ph-ng': 'e.g. Explicit content',
     'sl-contact':  'Contact Info',
@@ -466,6 +534,15 @@ var LANGS = {
     'sl-refimg':   'Reference Images (up to 4)',
     'hint-ref':    'Any ratio, 800px+ width recommended',
     'btn-addr':    '+ Add reference',
+    'lbl-reflayout':'Layout',
+    'opt-ref-orig':'Original size',  'opt-ref-grid':'2-column grid',
+    'ph-refcap':   'Caption (max 50 chars)',
+    'ph-smallcap': 'Caption (max 50 chars)',
+    'ph-maincap':  'Caption (max 50 chars)',
+    'sl-bodylayout': 'Layout',
+    'opt-layout-stack': 'Vertical', 'opt-layout-side': 'Horizontal',
+    'lbl-smallpos': 'Sub Image Position',
+    'opt-small-main': 'Below ref sheet', 'opt-small-tags': 'Below traits',
     'sl-theme':    'Theme Colors',
     'lbl-cola':    'Accent',     'lbl-colb': 'Secondary',
     'sl-colors':   'Content Colors',
@@ -520,15 +597,15 @@ var LANGS = {
     'lbl-eye':     '눈 색',       'ph-eye':     '보라',
     'lbl-skin':    '피부색',      'ph-skin':    '흰 피부',
     'sl-persona':  '성격 및 설정',
-    'lbl-pers':    '성격',        'ph-pers':    '차가운 겉모습 속에 열정을 숨기고...',
-    'lbl-bg':      '배경 설정',   'ph-bg':      '세계관, 스토리 배경...',
+    'lbl-pers':    '성격（최대 6줄）',    'ph-pers':    '차가운 겉모습 속에 열정을 숨기고...',
+    'lbl-bg':      '배경 설정（최대 6줄）','ph-bg':      '세계관, 스토리 배경...',
     'sl-chartags': '특징 태그（Enter로 추가）', 'ph-chartags': '예: 고양이 귀',
     'sl-commreq':  '커미션 내용',
     'lbl-cmtype':  '의뢰 종류',   'ph-cmtype':  '반신 컬러 / 전신 / 표정집',
     'lbl-cmcom':   '사용 허가',
     'opt-noncom':  '비상업',      'opt-com':    '상업 이용',
     'lbl-cmplat':  '용도',        'ph-cmplat':  '개인 사용 / 배경화면 / 굿즈 / SNS',
-    'lbl-cmnote':  '요청 내용',   'ph-cmnote':  '상황, 설명, 태그\n예: 야외 카페, 낮, 편안한 표정, #casual #smile',
+    'lbl-cmnote':  '요청 내용（최대 12줄）','ph-cmnote':  '상황, 설명, 태그\n예: 야외 카페, 낮, 편안한 표정, #casual #smile',
     'sl-ok':       'OK 항목（Enter로 추가）', 'ph-ok': '예: 오리지널 배경',
     'sl-ng':       'NG 항목（Enter로 추가）', 'ph-ng': '예: 과격한 표현',
     'sl-contact':  '연락처',
@@ -546,6 +623,15 @@ var LANGS = {
     'sl-refimg':   '참고 이미지（최대 4장）',
     'hint-ref':    '비율 자유, 가로 800px 이상 권장',
     'btn-addr':    '+ 참고 이미지 추가',
+    'lbl-reflayout':'레이아웃',
+    'opt-ref-orig':'원본 크기',  'opt-ref-grid':'2열 그리드',
+    'ph-refcap':   '설명 (최대 50자)',
+    'ph-smallcap': '설명 (최대 50자)',
+    'ph-maincap':  '설명 (최대 50자)',
+    'sl-bodylayout': '레이아웃',
+    'opt-layout-stack': '세로 배열', 'opt-layout-side': '가로 배열',
+    'lbl-smallpos': '서브 이미지 위치',
+    'opt-small-main': '설정화 아래', 'opt-small-tags': '특징 태그 아래',
     'sl-theme':    '테마 색상',
     'lbl-cola':    '포인트 색',   'lbl-colb': '보조 색',
     'sl-colors':   '콘텐츠 색상',
@@ -604,6 +690,9 @@ var TEXT_IDS = [
   'sl-mainimg','lbl-main1','hint-main1','hint-upload','lbl-main2','hint-main2','hint-upload2',
   'sl-smallimg','hint-small',
   'sl-refimg','hint-ref',
+  'lbl-reflayout','opt-ref-orig','opt-ref-grid',
+  'sl-bodylayout','opt-layout-stack','opt-layout-side',
+  'lbl-smallpos','opt-small-main','opt-small-tags',
   'sl-theme','lbl-cola','lbl-colb',
   'sl-colors','lbl-col-bg','lbl-col-text','lbl-col-label','lbl-col-card',
   'sl-colwidth','hint-colwidth',
@@ -638,6 +727,13 @@ function applyLang() {
   var ar = document.getElementById('add-r');
   if (as) as.textContent = t('btn-adds');
   if (ar) ar.textContent = t('btn-addr');
+  // main caption placeholders
+  var mc=g('main-cap');if(mc)mc.placeholder=t('ph-maincap');
+  var mc2=g('main2-cap');if(mc2)mc2.placeholder=t('ph-maincap');
+  // small caption placeholders
+  for(var si=0;si<smallN;si++){var sc=g('small-cap-'+si);if(sc)sc.placeholder=t('ph-smallcap');}
+  // ref caption placeholders
+  for(var ri=0;ri<refN;ri++){var rc=g('ref-cap-'+ri);if(rc)rc.placeholder=t('ph-refcap');}
   // update tpl-list empty message
   renderTpls();
   draw();
@@ -653,10 +749,13 @@ function setLang(lang) {
 
 // ── Core state ─────────────────────────────────────────────
 var T={chara:[],ok:[],ng:[]};
-var IMGS={main:null,main2:null,small:[],ref:[]};
+var IMGS={main:null,main2:null,small:[],ref:[],refCaptions:[],smallCaptions:[],mainCaption:'',main2Caption:''};
 var imgTarget=null;
 var smallN=0,refN=0;
 var currentLicense='noncom';
+var currentRefLayout='orig';
+var currentBodyLayout='stack';
+var currentSmallPos='below-main';
 var canvas=document.getElementById('cv');
 var ctx=canvas.getContext('2d');
 
@@ -669,6 +768,27 @@ function setLicense(val){
   currentLicense=val;
   g('radio-noncom').classList.toggle('selected',val==='noncom');
   g('radio-com').classList.toggle('selected',val==='com');
+  draw();
+}
+
+function setRefLayout(val){
+  currentRefLayout=val;
+  g('radio-ref-orig').classList.toggle('selected',val==='orig');
+  g('radio-ref-grid').classList.toggle('selected',val==='grid');
+  draw();
+}
+function setBodyLayout(val){
+  currentBodyLayout=val;
+  g('radio-layout-stack').classList.toggle('selected',val==='stack');
+  g('radio-layout-side').classList.toggle('selected',val==='side');
+  var cw=g('sec-colwidth');
+  if(cw)cw.style.display=val==='side'?'none':'block';
+  draw();
+}
+function setSmallPos(val){
+  currentSmallPos=val;
+  g('radio-small-main').classList.toggle('selected',val==='below-main');
+  g('radio-small-tags').classList.toggle('selected',val==='below-tags');
   draw();
 }
 
@@ -703,11 +823,45 @@ function addSlot(type){
   var idx=type==='small'?smallN++:refN++;
   IMGS[type][idx]=null;
   var grid=g(type==='small'?'sg':'rg');
-  var d=document.createElement('div');
-  d.className='iu sq';d.id=type+'-'+idx;
-  d.innerHTML='<div class="ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>'+t('hint-upload')+'</span></div>';
-  (function(tp,i){d.onclick=function(){imgTarget={type:tp,idx:i};g('ii').click()}})(type,idx);
-  grid.appendChild(d);
+
+  if(type==='ref'){
+    IMGS.refCaptions[idx]='';
+    var wrap=document.createElement('div');
+    wrap.className='ref-slot-wrap';
+    var d=document.createElement('div');
+    d.className='iu sq';d.id=type+'-'+idx;
+    d.innerHTML='<div class="ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>'+t('hint-upload')+'</span></div>';
+    (function(tp,i){d.onclick=function(){imgTarget={type:tp,idx:i};g('ii').click()}})(type,idx);
+    var cap=document.createElement('textarea');
+    cap.className='ref-caption';
+    cap.id='ref-cap-'+idx;
+    cap.placeholder=t('ph-refcap');
+    cap.maxLength=50;
+    (function(i){cap.oninput=function(){IMGS.refCaptions[i]=this.value.slice(0,50);draw()}})(idx);
+    wrap.appendChild(d);
+    wrap.appendChild(cap);
+    grid.appendChild(wrap);
+  } else {
+    // small type — wrap with caption (hidden until image uploaded)
+    IMGS.smallCaptions[idx]='';
+    var wrap2=document.createElement('div');
+    wrap2.className='ref-slot-wrap';
+    var d2=document.createElement('div');
+    d2.className='iu sq';d2.id=type+'-'+idx;
+    d2.innerHTML='<div class="ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>'+t('hint-upload')+'</span></div>';
+    (function(tp,i){d2.onclick=function(){imgTarget={type:tp,idx:i};g('ii').click()}})(type,idx);
+    var cap2=document.createElement('textarea');
+    cap2.className='ref-caption';
+    cap2.id='small-cap-'+idx;
+    cap2.placeholder=t('ph-smallcap');
+    cap2.maxLength=50;
+    cap2.style.display='none';
+    (function(i){cap2.oninput=function(){IMGS.smallCaptions[i]=this.value.slice(0,50);draw()}})(idx);
+    wrap2.appendChild(d2);
+    wrap2.appendChild(cap2);
+    grid.appendChild(wrap2);
+  }
+
   if(type==='small'&&smallN>=6)g('add-s').style.display='none';
   if(type==='ref'&&refN>=4)g('add-r').style.display='none';
 }
@@ -723,6 +877,9 @@ function loadImgFile(input){
         var ex=box.querySelector('img');if(ex)ex.remove();
         var el=document.createElement('img');el.src=e.target.result;box.appendChild(el);
         box.querySelector('.ph').style.display='none';
+        // show caption field
+        var capEl=g(imgTarget==='main'?'main-cap':'main2-cap');
+        if(capEl)capEl.style.display='block';
       } else {
         var tp=imgTarget.type,i=imgTarget.idx;
         IMGS[tp][i]=im;
@@ -730,6 +887,8 @@ function loadImgFile(input){
         var ex2=slot.querySelector('img');if(ex2)ex2.remove();
         var el2=document.createElement('img');el2.src=e.target.result;slot.appendChild(el2);
         slot.querySelector('.ph').style.display='none';
+        // show caption field for small type
+        if(tp==='small'){var scap=g('small-cap-'+i);if(scap)scap.style.display='block';}
       }
       input.value='';draw();
     };
@@ -821,42 +980,64 @@ function draw(){
   var layout=v('main-layout')||'side';
   var hasMain2=!!IMGS.main2;
 
-  var leftW, mainBlockH;
-  if(!hasMain2){
-    leftW=Math.round((W-PAD*2)*colPct);
-    if(IMGS.main){
-      var sc=Math.min(leftW/IMGS.main.width,1);
-      mainBlockH=Math.round(IMGS.main.height*sc);
-    } else {
-      mainBlockH=Math.round(leftW*(4/3));
-    }
-  } else if(layout==='side'){
-    leftW=Math.round((W-PAD*2)*colPct);
-    var halfW=Math.floor((leftW-6)/2);
-    var h1=IMGS.main  ? Math.round(halfW/IMGS.main.width *IMGS.main.height ) : Math.round(halfW*1.3);
-    var h2=IMGS.main2 ? Math.round(halfW/IMGS.main2.width*IMGS.main2.height) : Math.round(halfW*1.3);
-    mainBlockH=Math.max(h1,h2);
-  } else {
-    leftW=Math.round((W-PAD*2)*colPct);
-    var h1s=IMGS.main  ? Math.round(leftW/IMGS.main.width *IMGS.main.height ) : Math.round(leftW*1.3);
-    var h2s=IMGS.main2 ? Math.round(leftW/IMGS.main2.width*IMGS.main2.height) : Math.round(leftW*1.3);
-    mainBlockH=h1s+6+h2s;
-  }
-
-  var RX=PAD+leftW+20,RW=W-RX-PAD;
+  var leftW, mainBlockH, RX, RW;
   var stats=getStats();
+  var mainCapEst=(IMGS.main&&IMGS.mainCaption||IMGS.main2&&IMGS.main2Caption)?20:0;
+  var smallCapEst2=smallN>0&&IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()})?Math.ceil(smallN/3)*18:0;
+  var bodyH;
 
-  var tmpC=document.createElement('canvas').getContext('2d');
-  var ry=0;
-  ry+=50; // name block
-  if(T.chara.length)ry+=36+Math.ceil(T.chara.length/4)*24+14; // tags right after name
-  if(stats.length)ry+=Math.ceil(stats.length/3)*52+10;
-  var pers=v('c-pers'),bg=v('c-bg');
-  if(pers)ry+=36+Math.min(6,Math.ceil(pers.length/20)+1)*20+14;
-  if(bg)ry+=36+Math.min(6,Math.ceil(bg.length/20)+1)*20+14;
-
-  var leftH=mainBlockH+(smallN>0?8+Math.ceil(smallN/3)*(Math.round(leftW/3)+5)+5:0);
-  var bodyH=Math.max(leftH,ry)+20;
+  if(currentBodyLayout==='stack'){
+    if(!hasMain2){
+      leftW=Math.round((W-PAD*2)*colPct);
+      if(IMGS.main){var sc=Math.min(leftW/IMGS.main.width,1);mainBlockH=Math.round(IMGS.main.height*sc);}
+      else mainBlockH=Math.round(leftW*(4/3));
+    } else if(layout==='side'){
+      leftW=Math.round((W-PAD*2)*colPct);
+      var halfW=Math.floor((leftW-6)/2);
+      var h1=IMGS.main  ? Math.round(halfW/IMGS.main.width *IMGS.main.height ) : Math.round(halfW*1.3);
+      var h2=IMGS.main2 ? Math.round(halfW/IMGS.main2.width*IMGS.main2.height) : Math.round(halfW*1.3);
+      mainBlockH=Math.max(h1,h2);
+    } else {
+      leftW=Math.round((W-PAD*2)*colPct);
+      var h1s=IMGS.main  ? Math.round(leftW/IMGS.main.width *IMGS.main.height ) : Math.round(leftW*1.3);
+      var h2s=IMGS.main2 ? Math.round(leftW/IMGS.main2.width*IMGS.main2.height) : Math.round(leftW*1.3);
+      var stackCap1=(IMGS.main&&IMGS.mainCaption)?20:0;
+      mainBlockH=h1s+6+stackCap1+h2s;
+    }
+    RX=PAD+leftW+20; RW=W-RX-PAD;
+    var ry=0;
+    ry+=50;
+    if(T.chara.length)ry+=36+Math.ceil(T.chara.length/4)*24+14;
+    if(currentSmallPos==='below-tags'&&smallN>0){var sWt2=Math.floor((RW-2*5)/3);ry+=Math.ceil(smallN/3)*(sWt2+(smallCapEst2?18:0)+5)+10;}
+    if(stats.length)ry+=Math.ceil(stats.length/3)*52+10;
+    var pers=v('c-pers'),bg=v('c-bg');
+    if(pers)ry+=36+Math.min(6,Math.ceil(pers.length/20)+1)*20+14;
+    if(bg)ry+=36+Math.min(6,Math.ceil(bg.length/20)+1)*20+14;
+    var leftH=mainBlockH+mainCapEst+(smallN>0&&currentSmallPos==='below-main'?8+Math.ceil(smallN/3)*(Math.round(leftW/3)+5)+smallCapEst2:0);
+    bodyH=Math.max(leftH,ry)+20;
+  } else {
+    // side layout: full width images, text below
+    leftW=W-PAD*2; mainBlockH=0; RX=PAD; RW=W-PAD*2;
+    var halfFWe=Math.floor((W-PAD*2-10)/2);
+    var h1se=IMGS.main  ? Math.round(halfFWe/IMGS.main.width *IMGS.main.height ) : Math.round(halfFWe*1.2);
+    var h2se=IMGS.main2 ? Math.round(halfFWe/IMGS.main2.width*IMGS.main2.height) : Math.round(halfFWe*1.2);
+    var sideImgHe=Math.max(h1se,h2se);
+    var sideCapHe=mainCapEst;
+    var sideSmallHe=0;
+    if(smallN>0&&currentSmallPos==='below-main'){var sWside3=Math.floor((W-PAD*2-5*5)/6);sideSmallHe=Math.ceil(smallN/6)*(sWside3+(smallCapEst2?18:0)+5)+10;}
+    var textEst=0;
+    textEst+=50; // name
+    if(T.chara.length)textEst+=36+Math.ceil(T.chara.length/4)*24+6;
+    if(smallN>0&&currentSmallPos==='below-tags'){var sWside4=Math.floor((W-PAD*2-5*5)/6);textEst+=Math.ceil(smallN/6)*(sWside4+(smallCapEst2?18:0)+5)+10;}
+    else if(T.chara.length)textEst+=8;
+    if(stats.length)textEst+=Math.ceil(stats.length/3)*52+10;
+    var persE=v('c-pers'),bgE=v('c-bg');
+    var halfTWe=Math.floor((W-PAD*2-20)/2);
+    var persH2=persE?36+Math.min(6,Math.ceil(persE.length/20)+1)*20+14:0;
+    var bgH2=bgE?36+Math.min(6,Math.ceil(bgE.length/20)+1)*20+14:0;
+    textEst+=Math.max(persH2,bgH2);
+    bodyH=sideImgHe+sideCapHe+sideSmallHe+textEst+20;
+  }
 
   var CH=30+30+32; // title + badge row + padding
   var leftCWe=Math.round((W-PAD*2-20)*0.4);
@@ -870,10 +1051,41 @@ function draw(){
   CH+=Math.max(lhe,rhe);
   var refImgs=IMGS.ref.filter(Boolean);
   if(refImgs.length){
-    var mcw=Math.floor((W-PAD*2-(refImgs.length-1)*10)/refImgs.length);
-    var tallRef=0;
-    refImgs.forEach(function(im){var sc2=Math.min(mcw/im.width,1);var dh=Math.round(im.height*sc2);if(dh>tallRef)tallRef=dh;});
-    CH+=20+tallRef+16;
+    var refCapH=IMGS.refCaptions.slice(0,refImgs.length).some(function(c){return c&&c.trim()})?20:0;
+    if(currentRefLayout==='grid'){
+      var gCellWe=Math.floor((W-PAD*2-10)/2);
+      var grows2=Math.ceil(refImgs.length/2);
+      var gridTotalH=0;
+      for(var gr2=0;gr2<grows2;gr2++){
+        var rowH2=0;
+        for(var gc2=0;gc2<2;gc2++){
+          var gi2=gr2*2+gc2;
+          if(gi2<refImgs.length){
+            var sc2=Math.min(gCellWe/refImgs[gi2].width,1);
+            var dh2=Math.round(refImgs[gi2].height*sc2);
+            if(dh2>rowH2)rowH2=dh2;
+          }
+        }
+        // capH: check each cell in this row for caption
+        var capH2=0;
+        for(var gc2b=0;gc2b<2;gc2b++){
+          var gi2b=gr2*2+gc2b;
+          if(gi2b<refImgs.length&&IMGS.refCaptions[gi2b]&&IMGS.refCaptions[gi2b].trim())capH2=20;
+        }
+        gridTotalH+=rowH2+capH2+(gr2<grows2-1?16:0);
+      }
+      CH+=36+gridTotalH+16;  // +16 bottom buffer
+    } else {
+      // orig: each image at full natural size, stacked vertically
+      var origTotalH=0;
+      refImgs.forEach(function(im){
+        var dh=im.height;
+        if(im.width>W-PAD*2)dh=Math.round(im.height*(W-PAD*2)/im.width);
+        var cap=IMGS.refCaptions[refImgs.indexOf(im)]||'';
+        origTotalH+=dh+(cap?22:0)+10;
+      });
+      CH+=36+origTotalH+8;
+    }
   }
 
   var FOOTER=48;
@@ -949,100 +1161,225 @@ function draw(){
     }
   }
 
-  if(!hasMain2){
-    drawContain(IMGS.main,PAD,y0,leftW,mainBlockH,7,t('cv-chara-ph'));
-  } else if(layout==='side'){
-    var hw=Math.floor((leftW-6)/2);
-    var h1d=IMGS.main  ? Math.round(hw/IMGS.main.width *IMGS.main.height ) : Math.round(hw*1.3);
-    var h2d=IMGS.main2 ? Math.round(hw/IMGS.main2.width*IMGS.main2.height) : Math.round(hw*1.3);
-    var tallH=Math.max(h1d,h2d);
-    drawContain(IMGS.main, PAD,      y0,hw,tallH,7,t('cv-front'));
-    drawContain(IMGS.main2,PAD+hw+6, y0,hw,tallH,7,t('cv-back'));
-  } else {
-    var w1=leftW,h1st=IMGS.main  ? Math.round(w1/IMGS.main.width *IMGS.main.height ) : Math.round(w1*1.3);
-    var w2=leftW,h2st=IMGS.main2 ? Math.round(w2/IMGS.main2.width*IMGS.main2.height) : Math.round(w2*1.3);
-    drawContain(IMGS.main, PAD,y0,      w1,h1st,7,t('cv-front'));
-    drawContain(IMGS.main2,PAD,y0+h1st+6,w2,h2st,7,t('cv-back'));
-  }
-
-  // small images
-  if(smallN>0){
-    var sy0=y0+mainBlockH+8;
-    var sW=Math.floor((leftW-(3-1)*5)/3);
-    for(var i=0;i<smallN;i++){
-      var scx=PAD+(i%3)*(sW+5),scy=sy0+Math.floor(i/3)*(sW+5);
-      if(IMGS.small[i]){
-        imgCover(ctx,IMGS.small[i],scx,scy,sW,sW,5);
+  function drawSmallImgs(startX,startY,cellW,cols){
+    var sW=Math.floor((cellW-(cols-1)*5)/cols);
+    var hasSmallCap=IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()});
+    var sRowH=sW+(hasSmallCap?18:0);
+    for(var si2=0;si2<smallN;si2++){
+      var scx=startX+(si2%cols)*(sW+5),scy=startY+Math.floor(si2/cols)*(sRowH+5);
+      if(IMGS.small[si2]){
+        imgCover(ctx,IMGS.small[si2],scx,scy,sW,sW,5);
         ctx.strokeStyle=hex2rgba(ac,.2);ctx.lineWidth=.8;
         rr(ctx,scx,scy,sW,sW,5);ctx.stroke();
       } else {
-        rr(ctx,scx,scy,sW,sW,5);ctx.fillStyle='#ede5f4';ctx.fill();
+        rr(ctx,scx,scy,sW,sW,5);ctx.fillStyle=cCard;ctx.fill();
+      }
+      var scap2=IMGS.smallCaptions[si2]||'';
+      if(scap2&&IMGS.small[si2]){
+        ctx.fillStyle=cLabel;ctx.font="400 10px 'Noto Sans TC',sans-serif";
+        ctx.fillText(scap2.slice(0,50),scx+2,scy+sW+12);
       }
     }
   }
 
-  // RIGHT
-  var ry2=y0;
+  // ── STACK LAYOUT (上下排列) ──
+  if(currentBodyLayout==='stack'){
+    // draw main images in left column
+    if(!hasMain2){
+      drawContain(IMGS.main,PAD,y0,leftW,mainBlockH,7,t('cv-chara-ph'));
+      if(IMGS.main&&IMGS.mainCaption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.mainCaption.slice(0,50),PAD+4,y0+mainBlockH+13);}
+    } else if(layout==='side'){
+      var hw=Math.floor((leftW-6)/2);
+      var h1d=IMGS.main  ? Math.round(hw/IMGS.main.width *IMGS.main.height ) : Math.round(hw*1.3);
+      var h2d=IMGS.main2 ? Math.round(hw/IMGS.main2.width*IMGS.main2.height) : Math.round(hw*1.3);
+      var tallH=Math.max(h1d,h2d);
+      drawContain(IMGS.main, PAD,      y0,hw,tallH,7,t('cv-front'));
+      drawContain(IMGS.main2,PAD+hw+6, y0,hw,tallH,7,t('cv-back'));
+      if(IMGS.main&&IMGS.mainCaption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.mainCaption.slice(0,50),PAD+4,y0+tallH+13);}
+      if(IMGS.main2&&IMGS.main2Caption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.main2Caption.slice(0,50),PAD+hw+6+4,y0+tallH+13);}
+    } else {
+      var w1=leftW,h1st=IMGS.main  ? Math.round(w1/IMGS.main.width *IMGS.main.height ) : Math.round(w1*1.3);
+      var w2=leftW,h2st=IMGS.main2 ? Math.round(w2/IMGS.main2.width*IMGS.main2.height) : Math.round(w2*1.3);
+      var cap1gap=(IMGS.main&&IMGS.mainCaption)?20:0;
+      drawContain(IMGS.main, PAD,y0,w1,h1st,7,t('cv-front'));
+      if(IMGS.main&&IMGS.mainCaption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.mainCaption.slice(0,50),PAD+4,y0+h1st+13);}
+      drawContain(IMGS.main2,PAD,y0+h1st+6+cap1gap,w2,h2st,7,t('cv-back'));
+      if(IMGS.main2&&IMGS.main2Caption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.main2Caption.slice(0,50),PAD+4,y0+h1st+6+cap1gap+h2st+13);}
+    }
+    // small images below main (if below-main)
+    var mainCapOff=0;
+    if(!hasMain2&&IMGS.main&&IMGS.mainCaption)mainCapOff=20;
+    else if(hasMain2&&(IMGS.mainCaption||IMGS.main2Caption))mainCapOff=20;
+    if(smallN>0&&currentSmallPos==='below-main'){
+      drawSmallImgs(PAD,y0+mainBlockH+8+mainCapOff,leftW,3);
+    }
 
-  ctx.fillStyle=ac;ctx.fillRect(RX,ry2,3,34);
-  ctx.fillStyle=cText;ctx.font="700 22px 'Noto Serif TC',serif";
-  ctx.fillText(v('c-name')||t('lbl-cname'),RX+10,ry2+24);
-  ctx.fillStyle=hex2rgba(ac,.7);ctx.font="400 10px 'Noto Sans TC',sans-serif";
-  ctx.fillText(t('cv-charref'),RX+10,ry2+36);
-  ry2+=50;
+    // RIGHT column
+    var ry2=y0;
+    ctx.fillStyle=ac;ctx.fillRect(RX,ry2,3,34);
+    ctx.fillStyle=cText;ctx.font="700 22px 'Noto Serif TC',serif";
+    ctx.fillText(v('c-name')||t('lbl-cname'),RX+10,ry2+24);
+    ctx.fillStyle=hex2rgba(ac,.7);ctx.font="400 10px 'Noto Sans TC',sans-serif";
+    ctx.fillText(t('cv-charref'),RX+10,ry2+36);
+    ry2+=50;
 
-  // 特徵標籤 — 緊接在名字下方
-  if(T.chara.length){
-    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText(t('cv-chartags'),RX,ry2+13);
-    var tlen2=ctx.measureText(t('cv-chartags')).width+10;
-    var tlg3=ctx.createLinearGradient(RX+tlen2,0,RX+RW,0);
-    tlg3.addColorStop(0,hex2rgba(ac,.35));tlg3.addColorStop(1,'transparent');
-    ctx.strokeStyle=tlg3;ctx.lineWidth=.6;
-    ctx.beginPath();ctx.moveTo(RX+tlen2,ry2+8);ctx.lineTo(RX+RW,ry2+8);ctx.stroke();
-    ry2+=36;
-    ry2=tagRow(ctx,T.chara,RX,ry2,RX+RW,24,hex2rgba(ac2,.12),hex2rgba(ac2,.25),'#6d4fc7');
-    ry2+=14;
-  }
+    if(T.chara.length){
+      ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText(t('cv-chartags'),RX,ry2+13);
+      var tlen2=ctx.measureText(t('cv-chartags')).width+10;
+      var tlg3=ctx.createLinearGradient(RX+tlen2,0,RX+RW,0);
+      tlg3.addColorStop(0,hex2rgba(ac,.35));tlg3.addColorStop(1,'transparent');
+      ctx.strokeStyle=tlg3;ctx.lineWidth=.6;
+      ctx.beginPath();ctx.moveTo(RX+tlen2,ry2+8);ctx.lineTo(RX+RW,ry2+8);ctx.stroke();
+      ry2+=36;
+      ry2=tagRow(ctx,T.chara,RX,ry2,RX+RW,24,hex2rgba(ac2,.12),hex2rgba(ac2,.25),'#6d4fc7');
+      ry2+=14;
+      // small below tags
+      if(smallN>0&&currentSmallPos==='below-tags'){
+        drawSmallImgs(RX,ry2,RW,3);
+        var hasSmCap=IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()});
+        var sCols=3,sWt=Math.floor((RW-(sCols-1)*5)/sCols);
+        ry2+=Math.ceil(smallN/sCols)*(sWt+(hasSmCap?18:0)+5)+10;
+      }
+    }
+    if(stats.length){
+      var COLS=3,sCW=Math.floor((RW-(COLS-1)*6)/COLS);
+      stats.forEach(function(s,i){
+        var col=i%COLS,row=Math.floor(i/COLS);
+        var scx2=RX+col*(sCW+6),scy2=ry2+row*52;
+        rr(ctx,scx2,scy2,sCW,46,5);
+        ctx.fillStyle=hex2rgba(ac2,.07);ctx.fill();
+        ctx.strokeStyle=hex2rgba(ac,.15);ctx.lineWidth=.5;ctx.stroke();
+        ctx.fillStyle=cLabel;ctx.font="400 14px 'Noto Sans TC',sans-serif";
+        ctx.fillText(s.k,scx2+10,scy2+17);
+        ctx.fillStyle=cText;ctx.font="500 18px 'Noto Sans TC',sans-serif";
+        ctx.fillText(s.v,scx2+10,scy2+39);
+      });
+      ry2+=Math.ceil(stats.length/COLS)*52+10;
+    }
+    function drawSec(title,content,maxLines){
+      if(!content)return;
+      ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";
+      ctx.fillText(title,RX,ry2+13);
+      var tlen=ctx.measureText(title).width+10;
+      var tlg2=ctx.createLinearGradient(RX+tlen,0,RX+RW,0);
+      tlg2.addColorStop(0,hex2rgba(ac,.35));tlg2.addColorStop(1,'transparent');
+      ctx.strokeStyle=tlg2;ctx.lineWidth=0.6;
+      ctx.beginPath();ctx.moveTo(RX+tlen,ry2+8);ctx.lineTo(RX+RW,ry2+8);ctx.stroke();
+      ry2+=36;
+      ctx.fillStyle=cText;ctx.font="400 13px 'Noto Sans TC',sans-serif";
+      ry2=wrapT(ctx,content,RX,ry2,RW,20,maxLines||6);
+      ry2+=14;
+    }
+    drawSec(t('cv-persona'),v('c-pers'),6);
+    drawSec(t('cv-bgsetting'),v('c-bg'),6);
 
-  if(stats.length){
-    var COLS=3;
-    var sCW=Math.floor((RW-(COLS-1)*6)/COLS);
-    stats.forEach(function(s,i){
-      var col=i%COLS, row=Math.floor(i/COLS);
-      var scx2=RX+col*(sCW+6), scy2=ry2+row*52;
-      rr(ctx,scx2,scy2,sCW,46,5);
-      ctx.fillStyle=hex2rgba(ac2,.07);ctx.fill();
-      ctx.strokeStyle=hex2rgba(ac,.15);ctx.lineWidth=.5;ctx.stroke();
-      // label: 4px top padding
-      ctx.fillStyle=cLabel;ctx.font="400 14px 'Noto Sans TC',sans-serif";
-      ctx.fillText(s.k,scx2+10,scy2+17);
-      // value: label(14) + 4px gap + value baseline
-      ctx.fillStyle=cText;ctx.font="500 18px 'Noto Sans TC',sans-serif";
-      ctx.fillText(s.v,scx2+10,scy2+39);
-    });
-    ry2+=Math.ceil(stats.length/COLS)*52+10;
-  }
+    // COMMISSION SECTION
+    var smallCapEst=smallN>0&&IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()})?Math.ceil(smallN/3)*18:0;
+    var leftColH=mainBlockH+mainCapEst+(smallN>0&&currentSmallPos==='below-main'?8+Math.ceil(smallN/3)*(Math.floor((leftW-10)/3)+5)+smallCapEst:0);
+    var commY=Math.max(y0+leftColH,ry2)+20;
 
-  function drawSec(title,content,maxLines){
-    if(!content)return;
-    ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";
-    ctx.fillText(title,RX,ry2+13);
-    var tlen=ctx.measureText(title).width+10;
-    var tlg2=ctx.createLinearGradient(RX+tlen,0,RX+RW,0);
-    tlg2.addColorStop(0,hex2rgba(ac,.35));tlg2.addColorStop(1,'transparent');
-    ctx.strokeStyle=tlg2;ctx.lineWidth=0.6;
-    ctx.beginPath();ctx.moveTo(RX+tlen,ry2+8);ctx.lineTo(RX+RW,ry2+8);ctx.stroke();
-    ry2+=36;
-    ctx.fillStyle=cText;ctx.font="400 13px 'Noto Sans TC',sans-serif";
-    ry2=wrapT(ctx,content,RX,ry2,RW,20,maxLines||6);
-    ry2+=14;
-  }
+  } else {
+    // ── SIDE LAYOUT (左右排列) ──
+    // 全幅寬，設定圖1左，設定圖2右，各佔一半
+    var halfFW=Math.floor((W-PAD*2-10)/2);
+    var h1side=IMGS.main  ? Math.round(halfFW/IMGS.main.width *IMGS.main.height ) : Math.round(halfFW*1.2);
+    var h2side=IMGS.main2 ? Math.round(halfFW/IMGS.main2.width*IMGS.main2.height) : Math.round(halfFW*1.2);
+    var sideImgH=Math.max(h1side,h2side);
+    drawContain(IMGS.main, PAD,           y0,halfFW,sideImgH,7,t('cv-front'));
+    drawContain(IMGS.main2,PAD+halfFW+10, y0,halfFW,sideImgH,7,t('cv-back'));
+    var sideCapH=0;
+    if(IMGS.main&&IMGS.mainCaption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.mainCaption.slice(0,50),PAD+4,y0+sideImgH+13);sideCapH=20;}
+    if(IMGS.main2&&IMGS.main2Caption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.main2Caption.slice(0,50),PAD+halfFW+10+4,y0+sideImgH+13);sideCapH=20;}
 
-  drawSec(t('cv-persona'),v('c-pers'),6);
-  drawSec(t('cv-bgsetting'),v('c-bg'),6);
+    // small images below the two main images (full width, 6 cols)
+    var sideSmallY=y0+sideImgH+sideCapH+10;
+    if(smallN>0&&currentSmallPos==='below-main'){
+      drawSmallImgs(PAD,sideSmallY,W-PAD*2,6);
+      var hasSmCapSide=IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()});
+      var sWside=Math.floor((W-PAD*2-5*5)/6);
+      sideSmallY+=Math.ceil(smallN/6)*(sWside+(hasSmCapSide?18:0)+5)+10;
+    }
 
-  // COMMISSION SECTION
-  var commY=Math.max(y0+mainBlockH+(smallN>0?8+Math.ceil(smallN/3)*(Math.floor((leftW-10)/3)+5):0),ry2)+20;
+    // text content (名字、標籤、資料、個性、背景) — full width below
+    var textY=sideSmallY;
+    var textW=W-PAD*2;
+
+    // name block
+    ctx.fillStyle=ac;ctx.fillRect(PAD,textY,3,34);
+    ctx.fillStyle=cText;ctx.font="700 22px 'Noto Serif TC',serif";
+    ctx.fillText(v('c-name')||t('lbl-cname'),PAD+10,textY+24);
+    ctx.fillStyle=hex2rgba(ac,.7);ctx.font="400 10px 'Noto Sans TC',sans-serif";
+    ctx.fillText(t('cv-charref'),PAD+10,textY+36);
+    textY+=50;
+
+    // tags
+    if(T.chara.length){
+      ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";ctx.fillText(t('cv-chartags'),PAD,textY+13);
+      var tlen2s=ctx.measureText(t('cv-chartags')).width+10;
+      var tlg3s=ctx.createLinearGradient(PAD+tlen2s,0,W-PAD,0);
+      tlg3s.addColorStop(0,hex2rgba(ac,.35));tlg3s.addColorStop(1,'transparent');
+      ctx.strokeStyle=tlg3s;ctx.lineWidth=.6;
+      ctx.beginPath();ctx.moveTo(PAD+tlen2s,textY+8);ctx.lineTo(W-PAD,textY+8);ctx.stroke();
+      textY+=36;
+      textY=tagRow(ctx,T.chara,PAD,textY,W-PAD,24,hex2rgba(ac2,.12),hex2rgba(ac2,.25),'#6d4fc7');
+      textY+=6;
+    }
+    // small below-tags: draw after name (or after tags if present)
+    if(smallN>0&&currentSmallPos==='below-tags'){
+      drawSmallImgs(PAD,textY,textW,6);
+      var hasSmCapSide2=IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()});
+      var sWside2=Math.floor((textW-5*5)/6);
+      textY+=Math.ceil(smallN/6)*(sWside2+(hasSmCapSide2?18:0)+5)+10;
+    } else if(T.chara.length){
+      textY+=8; // small padding after tags when no small imgs
+    }
+
+    // stats grid — 3 cols across half width each side
+    if(stats.length){
+      var COLS2=3,sCW2=Math.floor((textW-(COLS2-1)*6)/COLS2);
+      stats.forEach(function(s,i){
+        var col=i%COLS2,row=Math.floor(i/COLS2);
+        var scx2=PAD+col*(sCW2+6),scy2=textY+row*52;
+        rr(ctx,scx2,scy2,sCW2,46,5);
+        ctx.fillStyle=hex2rgba(ac2,.07);ctx.fill();
+        ctx.strokeStyle=hex2rgba(ac,.15);ctx.lineWidth=.5;ctx.stroke();
+        ctx.fillStyle=cLabel;ctx.font="400 14px 'Noto Sans TC',sans-serif";
+        ctx.fillText(s.k,scx2+10,scy2+17);
+        ctx.fillStyle=cText;ctx.font="500 18px 'Noto Sans TC',sans-serif";
+        ctx.fillText(s.v,scx2+10,scy2+39);
+      });
+      textY+=Math.ceil(stats.length/COLS2)*52+10;
+    }
+
+    // persona & bg — two columns
+    var halfTW=Math.floor((textW-20)/2);
+    function drawSecSide(title,content,sx,sw,maxLines){
+      if(!content)return 0;
+      var sy=textY;
+      ctx.fillStyle=ac;ctx.font="500 13px 'Noto Sans TC',sans-serif";
+      ctx.fillText(title,sx,sy+13);
+      var tl=ctx.measureText(title).width+10;
+      var tlg=ctx.createLinearGradient(sx+tl,0,sx+sw,0);
+      tlg.addColorStop(0,hex2rgba(ac,.35));tlg.addColorStop(1,'transparent');
+      ctx.strokeStyle=tlg;ctx.lineWidth=.6;
+      ctx.beginPath();ctx.moveTo(sx+tl,sy+8);ctx.lineTo(sx+sw,sy+8);ctx.stroke();
+      sy+=36;
+      ctx.fillStyle=cText;ctx.font="400 13px 'Noto Sans TC',sans-serif";
+      sy=wrapT(ctx,content,sx,sy,sw,20,maxLines||6);
+      sy+=14;
+      return sy-textY;
+    }
+    var persH=drawSecSide(t('cv-persona'),v('c-pers'),PAD,halfTW,6);
+    var bgH=drawSecSide(t('cv-bgsetting'),v('c-bg'),PAD+halfTW+20,halfTW,6);
+    textY+=Math.max(persH,bgH);
+
+    // COMMISSION SECTION
+    var commY=textY+20;
+    // dummy drawSec to prevent reference errors
+    function drawSec(){}
+    var ry2=textY;
+  } // end side layout
+
   var dlg2=ctx.createLinearGradient(0,0,W,0);
   dlg2.addColorStop(0,'transparent');dlg2.addColorStop(.1,hex2rgba(ac,.3));
   dlg2.addColorStop(.9,hex2rgba(ac,.3));dlg2.addColorStop(1,'transparent');
@@ -1122,29 +1459,76 @@ function draw(){
     ctx.strokeStyle=rlg;ctx.lineWidth=.6;
     ctx.beginPath();ctx.moveTo(PAD+rlen,commY+8);ctx.lineTo(W-PAD,commY+8);ctx.stroke();
     commY+=36;
+
     var maxRefW=W-PAD*2;
-    var maxCellW=Math.floor((maxRefW-(rImgs.length-1)*10)/rImgs.length);
-    var tallest=0;
-    var cellDims=rImgs.map(function(im){
-      var scale=Math.min(maxCellW/im.width,1);
-      var dw=Math.round(im.width*scale);
-      var dh=Math.round(im.height*scale);
-      if(tallest<dh)tallest=dh;
-      return{dw:dw,dh:dh};
-    });
-    rImgs.forEach(function(im,i){
-      var d=cellDims[i];
-      var cx2=PAD+i*(maxCellW+10);
-      var cellH=d.dh;
-      rr(ctx,cx2,commY,maxCellW,cellH,5);
-      ctx.fillStyle='#f0ebf7';ctx.fill();
-      ctx.strokeStyle=hex2rgba(ac,.2);ctx.lineWidth=.8;ctx.stroke();
-      var ox=cx2+Math.round((maxCellW-d.dw)/2);
-      ctx.save();rr(ctx,cx2,commY,maxCellW,cellH,5);ctx.clip();
-      ctx.drawImage(im,ox,commY,d.dw,d.dh);
-      ctx.restore();
-    });
-    commY+=tallest+8;
+
+    if(currentRefLayout==='grid'){
+      var gCols=2, gGap=10;
+      var gCellW=Math.floor((maxRefW-(gCols-1)*gGap)/gCols);
+      var totalH=0;
+      var grows=Math.ceil(rImgs.length/gCols);
+      var gridDims=rImgs.map(function(im){
+        var scale=Math.min(gCellW/im.width,1);
+        return{dw:Math.round(im.width*scale),dh:Math.round(im.height*scale)};
+      });
+      for(var gr=0;gr<grows;gr++){
+        var rowMaxH=0;
+        for(var gc=0;gc<gCols;gc++){
+          var gi=gr*gCols+gc;
+          if(gi<rImgs.length&&gridDims[gi].dh>rowMaxH)rowMaxH=gridDims[gi].dh;
+        }
+        var capH=0;
+        for(var gc=0;gc<gCols;gc++){
+          var gi=gr*gCols+gc;
+          if(gi<rImgs.length&&IMGS.refCaptions[gi]&&IMGS.refCaptions[gi].trim())capH=20;
+        }
+        for(var gc=0;gc<gCols;gc++){
+          var gi=gr*gCols+gc;
+          if(gi>=rImgs.length)break;
+          var gim=rImgs[gi],gd=gridDims[gi];
+          var gcx=PAD+gc*(gCellW+gGap);
+          var gcy=commY+totalH;
+          rr(ctx,gcx,gcy,gCellW,rowMaxH,5);
+          ctx.fillStyle=cCard;ctx.fill();
+          ctx.strokeStyle=hex2rgba(ac,.2);ctx.lineWidth=.8;ctx.stroke();
+          var gox=gcx+Math.round((gCellW-gd.dw)/2);
+          var goy=gcy+Math.round((rowMaxH-gd.dh)/2);
+          ctx.save();rr(ctx,gcx,gcy,gCellW,rowMaxH,5);ctx.clip();
+          ctx.drawImage(gim,gox,goy,gd.dw,gd.dh);
+          ctx.restore();
+          var gcap=IMGS.refCaptions[gi]||'';
+          if(gcap){
+            ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";
+            ctx.fillText(gcap.slice(0,50),gcx+4,gcy+rowMaxH+14);
+          }
+        }
+        totalH+=rowMaxH+capH+(gr<grows-1?gGap+6:0);
+      }
+      commY+=totalH+8;
+    } else {
+      // orig: each image at full natural size, laid out vertically one by one
+      var hasAnyCap=IMGS.refCaptions.slice(0,rImgs.length).some(function(c){return c&&c.trim()});
+      rImgs.forEach(function(im,i){
+        var dw=im.width, dh=im.height;
+        // if wider than canvas, scale down to fit width only
+        if(dw>W-PAD*2){
+          var sc=( W-PAD*2)/dw;
+          dw=Math.round(dw*sc);dh=Math.round(dh*sc);
+        }
+        rr(ctx,PAD,commY,dw,dh,5);
+        ctx.fillStyle=cCard;ctx.fill();
+        ctx.strokeStyle=hex2rgba(ac,.2);ctx.lineWidth=.8;ctx.stroke();
+        ctx.save();rr(ctx,PAD,commY,dw,dh,5);ctx.clip();
+        ctx.drawImage(im,PAD,commY,dw,dh);
+        ctx.restore();
+        var cap=IMGS.refCaptions[i]||'';
+        if(cap){
+          ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";
+          ctx.fillText(cap.slice(0,50),PAD+4,commY+dh+14);
+        }
+        commY+=dh+(cap?22:0)+10;
+      });
+    }
   }
 
   // FOOTER
@@ -1184,6 +1568,13 @@ function getState(){
     fields:{name:v('c-name'),gender:v('c-gender'),bday:v('c-bday'),age:v('c-age'),h:v('c-h'),w:v('c-w'),body:v('c-body'),hair:v('c-hair'),eye:v('c-eye'),skin:v('c-skin'),pers:v('c-pers'),bg:v('c-bg'),cmType:v('cm-type'),cmPlat:v('cm-plat'),cmNote:v('cm-note'),ctName:v('ct-name'),ctTw:v('ct-tw')},
     tags:JSON.parse(JSON.stringify(T)),
     license:currentLicense,
+    refLayout:currentRefLayout,
+    bodyLayout:currentBodyLayout,
+    smallPos:currentSmallPos,
+    refCaptions:IMGS.refCaptions.slice(),
+    smallCaptions:IMGS.smallCaptions.slice(),
+    mainCaption:IMGS.mainCaption,
+    main2Caption:IMGS.main2Caption,
     ac:v('col-a'),ac2:v('col-b'),sz:v('sz'),colPct:v('col-pct'),mainLayout:v('main-layout'),
     lang:currentLang
   };
@@ -1195,6 +1586,13 @@ function applyState(s){
   T=s.tags||{chara:[],ok:[],ng:[]};
   ['chara','ok','ng'].forEach(renderTagUI);
   if(s.license)setLicense(s.license);
+  if(s.refLayout)setRefLayout(s.refLayout);
+  if(s.bodyLayout)setBodyLayout(s.bodyLayout);
+  if(s.smallPos)setSmallPos(s.smallPos);
+  if(s.refCaptions)IMGS.refCaptions=s.refCaptions.slice();
+  if(s.smallCaptions)IMGS.smallCaptions=s.smallCaptions.slice();
+  if(s.mainCaption!=null)IMGS.mainCaption=s.mainCaption;
+  if(s.main2Caption!=null)IMGS.main2Caption=s.main2Caption;
   if(s.ac)g('col-a').value=s.ac;
   if(s.ac2)g('col-b').value=s.ac2;
   if(s.sz)g('sz').value=s.sz;
