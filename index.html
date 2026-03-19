@@ -935,6 +935,14 @@ function wrapT(c,text,x,y,maxW,lh,maxL){
   if(line){c.fillText(line,x,y);y+=lh}
   return y;
 }
+// Draw caption text wrapped within imgW, max 2 lines. Returns fixed height (0 or 38).
+var CAP_LH=16, CAP_MAX=2, CAP_H=CAP_LH*CAP_MAX+6; // 38px total when present
+function drawCap(c,text,x,y,imgW,color){
+  if(!text||!text.trim())return 0;
+  c.fillStyle=color;c.font="400 11px 'Noto Sans TC',sans-serif";
+  wrapT(c,text.slice(0,50),x+2,y+CAP_LH,imgW-4,CAP_LH,CAP_MAX);
+  return CAP_H;
+}
 function tagRow(c,items,x,y,maxX,lh,fillColor,strokeColor,textColor){
   var cx=x;
   items.forEach(function(tag){
@@ -982,8 +990,8 @@ function draw(){
 
   var leftW, mainBlockH, RX, RW;
   var stats=getStats();
-  var mainCapEst=(IMGS.main&&IMGS.mainCaption||IMGS.main2&&IMGS.main2Caption)?20:0;
-  var smallCapEst2=smallN>0&&IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()})?Math.ceil(smallN/3)*18:0;
+  var mainCapEst=38; // always reserve CAP_H; actual presence checked per-mode
+  var smallCapEst2=smallN>0&&IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()})?38:0;
   var bodyH;
 
   if(currentBodyLayout==='stack'){
@@ -1001,19 +1009,29 @@ function draw(){
       leftW=Math.round((W-PAD*2)*colPct);
       var h1s=IMGS.main  ? Math.round(leftW/IMGS.main.width *IMGS.main.height ) : Math.round(leftW*1.3);
       var h2s=IMGS.main2 ? Math.round(leftW/IMGS.main2.width*IMGS.main2.height) : Math.round(leftW*1.3);
-      var stackCap1=(IMGS.main&&IMGS.mainCaption)?20:0;
+      var stackCap1=(IMGS.main&&IMGS.mainCaption)?38:0;
       mainBlockH=h1s+6+stackCap1+h2s;
     }
     RX=PAD+leftW+20; RW=W-RX-PAD;
     var ry=0;
     ry+=50;
-    if(T.chara.length)ry+=36+Math.ceil(T.chara.length/4)*24+14;
-    if(currentSmallPos==='below-tags'&&smallN>0){var sWt2=Math.floor((RW-2*5)/3);ry+=Math.ceil(smallN/3)*(sWt2+(smallCapEst2?18:0)+5)+10;}
+    if(T.chara.length)ry+=36+Math.ceil(T.chara.length/4)*24+6;
+    if(currentSmallPos==='below-tags'&&smallN>0){
+      var sWt2=Math.floor((RW-(3-1)*5)/3);
+      var hasSmCapEst=IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()});
+      ry+=Math.ceil(smallN/3)*(sWt2+(hasSmCapEst?38:0)+5)+16;
+    } else if(T.chara.length){ ry+=8; }
     if(stats.length)ry+=Math.ceil(stats.length/3)*52+10;
     var pers=v('c-pers'),bg=v('c-bg');
     if(pers)ry+=36+Math.min(6,Math.ceil(pers.length/20)+1)*20+14;
     if(bg)ry+=36+Math.min(6,Math.ceil(bg.length/20)+1)*20+14;
-    var leftH=mainBlockH+mainCapEst+(smallN>0&&currentSmallPos==='below-main'?8+Math.ceil(smallN/3)*(Math.round(leftW/3)+5)+smallCapEst2:0);
+    var sWest=Math.floor((leftW-(3-1)*5)/3);
+    var smallRowHest=sWest+(smallCapEst2>0?38:0);
+    var mainCapForLeftH=0;
+    if(!hasMain2){mainCapForLeftH=IMGS.main&&IMGS.mainCaption?CAP_H:0;}
+    else if(layout==='side'){mainCapForLeftH=(IMGS.main&&IMGS.mainCaption||IMGS.main2&&IMGS.main2Caption)?CAP_H:0;}
+    else{mainCapForLeftH=IMGS.main2&&IMGS.main2Caption?CAP_H:0;} // stk1 already in mainBlockH
+    var leftH=mainBlockH+mainCapForLeftH+(smallN>0&&currentSmallPos==='below-main'?8+Math.ceil(smallN/3)*(smallRowHest+5):0);
     bodyH=Math.max(leftH,ry)+20;
   } else {
     // side layout: full width images, text below
@@ -1024,11 +1042,11 @@ function draw(){
     var sideImgHe=Math.max(h1se,h2se);
     var sideCapHe=mainCapEst;
     var sideSmallHe=0;
-    if(smallN>0&&currentSmallPos==='below-main'){var sWside3=Math.floor((W-PAD*2-5*5)/6);sideSmallHe=Math.ceil(smallN/6)*(sWside3+(smallCapEst2?18:0)+5)+10;}
+    if(smallN>0&&currentSmallPos==='below-main'){var sWside3=Math.floor((W-PAD*2-5*5)/6);sideSmallHe=Math.ceil(smallN/6)*(sWside3+(smallCapEst2?38:0)+5)+10;}
     var textEst=0;
     textEst+=50; // name
     if(T.chara.length)textEst+=36+Math.ceil(T.chara.length/4)*24+6;
-    if(smallN>0&&currentSmallPos==='below-tags'){var sWside4=Math.floor((W-PAD*2-5*5)/6);textEst+=Math.ceil(smallN/6)*(sWside4+(smallCapEst2?18:0)+5)+10;}
+    if(smallN>0&&currentSmallPos==='below-tags'){var sWside4=Math.floor((W-PAD*2-5*5)/6);textEst+=Math.ceil(smallN/6)*(sWside4+(smallCapEst2?38:0)+5)+10;}
     else if(T.chara.length)textEst+=8;
     if(stats.length)textEst+=Math.ceil(stats.length/3)*52+10;
     var persE=v('c-pers'),bgE=v('c-bg');
@@ -1070,11 +1088,11 @@ function draw(){
         var capH2=0;
         for(var gc2b=0;gc2b<2;gc2b++){
           var gi2b=gr2*2+gc2b;
-          if(gi2b<refImgs.length&&IMGS.refCaptions[gi2b]&&IMGS.refCaptions[gi2b].trim())capH2=20;
+          if(gi2b<refImgs.length&&IMGS.refCaptions[gi2b]&&IMGS.refCaptions[gi2b].trim())capH2=38;
         }
-        gridTotalH+=rowH2+capH2+(gr2<grows2-1?16:0);
+        gridTotalH+=rowH2+capH2+(gr2<grows2-1?10+capH2:0);
       }
-      CH+=36+gridTotalH+16;  // +16 bottom buffer
+      CH+=36+gridTotalH+32;
     } else {
       // orig: each image at full natural size, stacked vertically
       var origTotalH=0;
@@ -1082,9 +1100,9 @@ function draw(){
         var dh=im.height;
         if(im.width>W-PAD*2)dh=Math.round(im.height*(W-PAD*2)/im.width);
         var cap=IMGS.refCaptions[refImgs.indexOf(im)]||'';
-        origTotalH+=dh+(cap?22:0)+10;
+        origTotalH+=dh+(cap?38:0)+10;
       });
-      CH+=36+origTotalH+8;
+      CH+=36+origTotalH+32;
     }
   }
 
@@ -1164,7 +1182,7 @@ function draw(){
   function drawSmallImgs(startX,startY,cellW,cols){
     var sW=Math.floor((cellW-(cols-1)*5)/cols);
     var hasSmallCap=IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()});
-    var sRowH=sW+(hasSmallCap?18:0);
+    var sRowH=sW+(hasSmallCap?CAP_H:0);
     for(var si2=0;si2<smallN;si2++){
       var scx=startX+(si2%cols)*(sW+5),scy=startY+Math.floor(si2/cols)*(sRowH+5);
       if(IMGS.small[si2]){
@@ -1176,8 +1194,7 @@ function draw(){
       }
       var scap2=IMGS.smallCaptions[si2]||'';
       if(scap2&&IMGS.small[si2]){
-        ctx.fillStyle=cLabel;ctx.font="400 10px 'Noto Sans TC',sans-serif";
-        ctx.fillText(scap2.slice(0,50),scx+2,scy+sW+12);
+        drawCap(ctx,scap2,scx,scy+sW,sW,cLabel);
       }
     }
   }
@@ -1187,7 +1204,7 @@ function draw(){
     // draw main images in left column
     if(!hasMain2){
       drawContain(IMGS.main,PAD,y0,leftW,mainBlockH,7,t('cv-chara-ph'));
-      if(IMGS.main&&IMGS.mainCaption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.mainCaption.slice(0,50),PAD+4,y0+mainBlockH+13);}
+      var mainCapH1=IMGS.main&&IMGS.mainCaption?drawCap(ctx,IMGS.mainCaption,PAD,y0+mainBlockH,leftW,cLabel):0;
     } else if(layout==='side'){
       var hw=Math.floor((leftW-6)/2);
       var h1d=IMGS.main  ? Math.round(hw/IMGS.main.width *IMGS.main.height ) : Math.round(hw*1.3);
@@ -1195,21 +1212,30 @@ function draw(){
       var tallH=Math.max(h1d,h2d);
       drawContain(IMGS.main, PAD,      y0,hw,tallH,7,t('cv-front'));
       drawContain(IMGS.main2,PAD+hw+6, y0,hw,tallH,7,t('cv-back'));
-      if(IMGS.main&&IMGS.mainCaption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.mainCaption.slice(0,50),PAD+4,y0+tallH+13);}
-      if(IMGS.main2&&IMGS.main2Caption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.main2Caption.slice(0,50),PAD+hw+6+4,y0+tallH+13);}
+      var sbs1H=IMGS.main&&IMGS.mainCaption?drawCap(ctx,IMGS.mainCaption,PAD,y0+tallH,hw,cLabel):0;
+      var sbs2H=IMGS.main2&&IMGS.main2Caption?drawCap(ctx,IMGS.main2Caption,PAD+hw+6,y0+tallH,hw,cLabel):0;var sbsCapH=Math.max(sbs1H,sbs2H);
     } else {
       var w1=leftW,h1st=IMGS.main  ? Math.round(w1/IMGS.main.width *IMGS.main.height ) : Math.round(w1*1.3);
       var w2=leftW,h2st=IMGS.main2 ? Math.round(w2/IMGS.main2.width*IMGS.main2.height) : Math.round(w2*1.3);
-      var cap1gap=(IMGS.main&&IMGS.mainCaption)?20:0;
+      var cap1gap=0;
       drawContain(IMGS.main, PAD,y0,w1,h1st,7,t('cv-front'));
-      if(IMGS.main&&IMGS.mainCaption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.mainCaption.slice(0,50),PAD+4,y0+h1st+13);}
+      if(IMGS.main&&IMGS.mainCaption){cap1gap=drawCap(ctx,IMGS.mainCaption,PAD,y0+h1st,leftW,cLabel);}
       drawContain(IMGS.main2,PAD,y0+h1st+6+cap1gap,w2,h2st,7,t('cv-back'));
-      if(IMGS.main2&&IMGS.main2Caption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.main2Caption.slice(0,50),PAD+4,y0+h1st+6+cap1gap+h2st+13);}
+      var stk2CapH=IMGS.main2&&IMGS.main2Caption?drawCap(ctx,IMGS.main2Caption,PAD,y0+h1st+6+cap1gap+h2st,leftW,cLabel):0;
     }
     // small images below main (if below-main)
+    // mainCapOff = total caption height below the last main image
     var mainCapOff=0;
-    if(!hasMain2&&IMGS.main&&IMGS.mainCaption)mainCapOff=20;
-    else if(hasMain2&&(IMGS.mainCaption||IMGS.main2Caption))mainCapOff=20;
+    if(!hasMain2){
+      // single image: mainCapH1 is cap height
+      mainCapOff=typeof mainCapH1!=='undefined'?mainCapH1:0;
+    } else if(layout==='side'){
+      // side by side: sbsCapH is max of both cap heights
+      mainCapOff=typeof sbsCapH!=='undefined'?sbsCapH:0;
+    } else {
+      // stack: mainBlockH already includes cap1gap+h2st, just add stk2CapH
+      mainCapOff=typeof stk2CapH!=='undefined'?stk2CapH:0;
+    }
     if(smallN>0&&currentSmallPos==='below-main'){
       drawSmallImgs(PAD,y0+mainBlockH+8+mainCapOff,leftW,3);
     }
@@ -1232,14 +1258,16 @@ function draw(){
       ctx.beginPath();ctx.moveTo(RX+tlen2,ry2+8);ctx.lineTo(RX+RW,ry2+8);ctx.stroke();
       ry2+=36;
       ry2=tagRow(ctx,T.chara,RX,ry2,RX+RW,24,hex2rgba(ac2,.12),hex2rgba(ac2,.25),'#6d4fc7');
-      ry2+=14;
-      // small below tags
-      if(smallN>0&&currentSmallPos==='below-tags'){
-        drawSmallImgs(RX,ry2,RW,3);
-        var hasSmCap=IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()});
-        var sCols=3,sWt=Math.floor((RW-(sCols-1)*5)/sCols);
-        ry2+=Math.ceil(smallN/sCols)*(sWt+(hasSmCap?18:0)+5)+10;
-      }
+      ry2+=6;
+    }
+    // small below-tags: outside chara check so it shows even without tags
+    if(smallN>0&&currentSmallPos==='below-tags'){
+      drawSmallImgs(RX,ry2,RW,3);
+      var hasSmCap=IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()});
+      var sCols=3,sWt=Math.floor((RW-(sCols-1)*5)/sCols);
+      ry2+=Math.ceil(smallN/sCols)*(sWt+(hasSmCap?CAP_H:0)+5)+10;
+    } else if(T.chara.length){
+      ry2+=8;
     }
     if(stats.length){
       var COLS=3,sCW=Math.floor((RW-(COLS-1)*6)/COLS);
@@ -1275,7 +1303,14 @@ function draw(){
 
     // COMMISSION SECTION
     var smallCapEst=smallN>0&&IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()})?Math.ceil(smallN/3)*18:0;
-    var leftColH=mainBlockH+mainCapEst+(smallN>0&&currentSmallPos==='below-main'?8+Math.ceil(smallN/3)*(Math.floor((leftW-10)/3)+5)+smallCapEst:0);
+    // actual cap heights for commY calculation
+    var actualMainCapH=0;
+    if(!hasMain2)actualMainCapH=IMGS.main&&IMGS.mainCaption?CAP_H:0;
+    else if(layout==='side')actualMainCapH=(IMGS.main&&IMGS.mainCaption||IMGS.main2&&IMGS.main2Caption)?CAP_H:0;
+    else actualMainCapH=IMGS.main2&&IMGS.main2Caption?CAP_H:0;
+    var smallCapEst=smallN>0&&IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()})?38:0;
+    var sWlc=Math.floor((leftW-(3-1)*5)/3);
+    var leftColH=mainBlockH+actualMainCapH+(smallN>0&&currentSmallPos==='below-main'?8+Math.ceil(smallN/3)*(sWlc+smallCapEst+5):0);
     var commY=Math.max(y0+leftColH,ry2)+20;
 
   } else {
@@ -1288,8 +1323,8 @@ function draw(){
     drawContain(IMGS.main, PAD,           y0,halfFW,sideImgH,7,t('cv-front'));
     drawContain(IMGS.main2,PAD+halfFW+10, y0,halfFW,sideImgH,7,t('cv-back'));
     var sideCapH=0;
-    if(IMGS.main&&IMGS.mainCaption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.mainCaption.slice(0,50),PAD+4,y0+sideImgH+13);sideCapH=20;}
-    if(IMGS.main2&&IMGS.main2Caption){ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";ctx.fillText(IMGS.main2Caption.slice(0,50),PAD+halfFW+10+4,y0+sideImgH+13);sideCapH=20;}
+    if(IMGS.main&&IMGS.mainCaption){sideCapH=drawCap(ctx,IMGS.mainCaption,PAD,y0+sideImgH,halfFW,cLabel);}
+    if(IMGS.main2&&IMGS.main2Caption){var cap2H=drawCap(ctx,IMGS.main2Caption,PAD+halfFW+10,y0+sideImgH,halfFW,cLabel);if(cap2H>sideCapH)sideCapH=cap2H;}
 
     // small images below the two main images (full width, 6 cols)
     var sideSmallY=y0+sideImgH+sideCapH+10;
@@ -1297,7 +1332,7 @@ function draw(){
       drawSmallImgs(PAD,sideSmallY,W-PAD*2,6);
       var hasSmCapSide=IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()});
       var sWside=Math.floor((W-PAD*2-5*5)/6);
-      sideSmallY+=Math.ceil(smallN/6)*(sWside+(hasSmCapSide?18:0)+5)+10;
+      sideSmallY+=Math.ceil(smallN/6)*(sWside+(hasSmCapSide?CAP_H:0)+5)+10;
     }
 
     // text content (名字、標籤、資料、個性、背景) — full width below
@@ -1329,7 +1364,7 @@ function draw(){
       drawSmallImgs(PAD,textY,textW,6);
       var hasSmCapSide2=IMGS.smallCaptions.slice(0,smallN).some(function(c){return c&&c.trim()});
       var sWside2=Math.floor((textW-5*5)/6);
-      textY+=Math.ceil(smallN/6)*(sWside2+(hasSmCapSide2?18:0)+5)+10;
+      textY+=Math.ceil(smallN/6)*(sWside2+(hasSmCapSide2?CAP_H:0)+5)+10;
     } else if(T.chara.length){
       textY+=8; // small padding after tags when no small imgs
     }
@@ -1497,12 +1532,9 @@ function draw(){
           ctx.drawImage(gim,gox,goy,gd.dw,gd.dh);
           ctx.restore();
           var gcap=IMGS.refCaptions[gi]||'';
-          if(gcap){
-            ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";
-            ctx.fillText(gcap.slice(0,50),gcx+4,gcy+rowMaxH+14);
-          }
+          if(gcap){drawCap(ctx,gcap,gcx,gcy+rowMaxH,gCellW,cLabel);}
         }
-        totalH+=rowMaxH+capH+(gr<grows-1?gGap+6:0);
+        totalH+=rowMaxH+capH+(gr<grows-1?gGap+CAP_H:0);
       }
       commY+=totalH+8;
     } else {
@@ -1522,11 +1554,8 @@ function draw(){
         ctx.drawImage(im,PAD,commY,dw,dh);
         ctx.restore();
         var cap=IMGS.refCaptions[i]||'';
-        if(cap){
-          ctx.fillStyle=cLabel;ctx.font="400 11px 'Noto Sans TC',sans-serif";
-          ctx.fillText(cap.slice(0,50),PAD+4,commY+dh+14);
-        }
-        commY+=dh+(cap?22:0)+10;
+        if(cap){drawCap(ctx,cap,PAD,commY+dh,dw,cLabel);}
+        commY+=dh+(cap?CAP_H:0)+10;
       });
     }
   }
